@@ -1,0 +1,39 @@
+.error-template {
+  padding: 40px 15px;
+  text-align: center;
+}
+.error-actions {
+  margin-top: 15px;
+  margin-bottom: 15px;
+}
+.error-actions .btn {
+  margin-right: 10px;
+}
+
+
+.console-body {
+	background-color: #000000;
+	color: rgb(10, 228, 10);
+	font-family: Courier;
+}
+#prompt {
+	font-style: unset;
+	font-size: 1em;
+}
+#prompt.idle {
+	animation: blink 1100ms linear infinite;
+	-webkit-animation: blink 1100ms linear infinite;
+}
+
+@keyframes blink {
+	49% {opacity: 1;}
+	50% {opacity: 0;}
+	89% {opacity: 0;}
+	90% {opacity: 1;}
+}
+@-webkit-keyframes blink {
+	49% {opacity: 1;}
+	50% {opacity: 0;}
+	89% {opacity: 0;}
+	90% {opacity: 1;}
+}
