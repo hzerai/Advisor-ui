@@ -21,6 +21,8 @@
     "chart.js": "^3.7.0",
     "chartjs-adapter-moment": "^1.0.0",
     "chartjs-plugin-datalabels": "^2.0.0",
+    "html-to-pdfmake": "^2.3.7",
+    "jspdf": "^2.5.0",
     "jszip": "^3.7.1",
     "moment": "^2.29.1",
     "ng2-charts": "^3.0.5",

@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { AdvisorServiceService } from './advisor-service.service';
 import { BubbleChartComponent } from './bubble-chart/bubble-chart.component';
 import { Exception } from './Exception';
@@ -6,7 +6,11 @@ import { ExceptionData } from './ExceptionData';
 import * as JSZip from 'jszip';
 import { PieChartComponent } from './pie-chart/pie-chart.component';
 import { LineChartComponent } from './line-chart/line-chart.component';
+import { jsPDF } from 'jspdf';
+import html2canvas from 'html2canvas';
+
 let zipFile: JSZip = new JSZip();
+
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
@@ -30,7 +34,7 @@ export class AppComponent implements OnInit {
   search: string = "";
   uploading: string;
   lineData: Date[] = [];
-
+  currentFile: string;
 
   constructor(private advisor: AdvisorServiceService) { }
 
@@ -46,6 +50,7 @@ export class AppComponent implements OnInit {
         name: event.target.files[0].name,
         bytes: null
       }
+      this.currentFile = this.log.name;
       var reader = new FileReader();
       if (this.log.name.endsWith('zip')) {
         this.uploading = 'Scanning all files contained in ' + this.log.name + ', please wait...';
@@ -71,9 +76,8 @@ export class AppComponent implements OnInit {
                   var exe = this.prepare(ex);
                   var foundEx = this.exceptions.find(e => {
                     if (e.message.trim() == 'empty' && e.message.trim() == '') {
-                      return e.exception.causedBy.find(cb => {
-                        return exe.exception.causedBy.find(cb2 => cb2 == cb) != null;
-                      }) != null;
+                      const filteredArray = e.exception.causedBy.filter(value => exe.exception.causedBy.includes(value));
+                      return filteredArray.length > 0;
                     } else {
                       return e.message == exe.message
                     }
@@ -204,8 +208,33 @@ export class AppComponent implements OnInit {
         this.db = [];
         e.forEach(ex => {
           var exe = this.prepare(ex);
-          this.exceptions.push(exe);
-          this.db.push(exe);
+          var foundEx = this.exceptions.find(e => {
+            if (e.message.trim() == 'empty' && e.message.trim() == '') {
+              const filteredArray = e.exception.causedBy.filter(value => exe.exception.causedBy.includes(value));
+              return filteredArray.length > 0;
+            } else {
+              return e.message == exe.message
+            }
+          });
+          var alreadyMapped = foundEx;
+          if (alreadyMapped) {
+            var ch = alreadyMapped.child;
+            if (ch) {
+              alreadyMapped = ch;
+              while (alreadyMapped) {
+                ch = alreadyMapped;
+                alreadyMapped = alreadyMapped.child;
+              }
+              ch.child = exe;
+            } else {
+              alreadyMapped.child = exe
+            }
+            foundEx.count = foundEx.count + exe.count;
+          } else {
+            this.exceptions.push(exe);
+            this.db.push(exe);
+          }
+
         })
         this.uploading = null;
         var saved: string = window.localStorage.getItem('savedReports');
@@ -236,6 +265,7 @@ export class AppComponent implements OnInit {
     this.exceptions = savedReport.data;
     this.db = savedReport.data;
     this.lineData = savedReport.lineData;
+    this.currentFile = savedReport.fileName;
   }
 
 
@@ -380,5 +410,54 @@ export class AppComponent implements OnInit {
     setTimeout(typer, 100);
   };
 
+  getClippedRegion(image, x, y, width, height) {
+
+    var canvas = document.createElement('canvas'),
+      ctx = canvas.getContext('2d');
+
+    canvas.width = width;
+    canvas.height = height;
+
+    //                   source region         dest. region
+    ctx.drawImage(image, x, y, width, 2730, 0, 0, width, 2730);
+
+    return canvas;
+  }
+  downloading: boolean = false;
+
+  SavePDF() {
+    this.downloading = true;
+
+    setTimeout(() => {
+
+    }, 1000);
+
+    var exceptions = document.getElementsByClassName("exception");
+    for (var i = 0; i < exceptions.length; i++) {
+      exceptions[i].classList.remove('collapse')
+    }
+
+    let content = document.getElementById('content');
+    let PDF = new jsPDF('p', 'mm', 'a4', true);
+    html2canvas(content).then(canvas => {
+      let fileWidth = 210;
+      let fileHeight = canvas.height * fileWidth / canvas.width;
+      for (var i = 0; i < canvas.height / 2730; ++i) {
+        const content = this.getClippedRegion(canvas, 0, 2700 * i, canvas.width, canvas.height).toDataURL('image/png', 0.5)
+        if (i > 0) {
+          PDF.addPage('a4', 'p')
+          PDF.setPage(i + 1)
+        }
+        PDF.addImage(content, 'PNG', 0, 0, fileWidth, fileHeight - 20)
+      }
+
+    }).finally(() => {
+      PDF.save(this.currentFile + '__' + new Date().toISOString() + '__Advisor-Analysis.pdf');
+      for (var i = 0; i < exceptions.length; i++) {
+        exceptions[i].classList.add('collapse')
+      }
+      this.downloading = false;
+    });
+  }
 
 }
