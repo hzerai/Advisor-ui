@@ -24,7 +24,7 @@ export class BubbleChartComponent implements OnInit {
   ];
   ngOnInit(): void {
 
-    if (this.exception == null || this.chart.data.datasets.find(e => e.label === this.exception.exception.name)) {
+    if (this.exception == null || this.chart.data.datasets.find(e => e.label === this.exception.exception.name && e.data.length === this.exception.count)) {
       return;
     }
     var data: any = [];

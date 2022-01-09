@@ -10,30 +10,75 @@
   margin-right: 10px;
 }
 
-
 .console-body {
-	background-color: #000000;
-	color: rgb(10, 228, 10);
-	font-family: Courier;
+  background-color: black;
+  background-image: radial-gradient(
+    rgba(0, 150, 0, 0.75), black 120%
+  );
+  overflow: hidden;
+  padding: 2rem;
+  color: white;
+  font: 1.3rem Inconsolata, monospace;
+  text-shadow: 0 0 5px #C8C8C8;
 }
+
+.console-body::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(black, 0.15),
+    rgba(black, 0.15) 1px,
+    transparent 1px,
+    transparent 2px
+  );
+  pointer-events: none;
+}
+
+::selection {
+  background: #0080FF;
+  text-shadow: none;
+}
+
+
 #prompt {
-	font-style: unset;
-	font-size: 1em;
+  font-style: unset;
+  font-size: 1em;
 }
 #prompt.idle {
-	animation: blink 1100ms linear infinite;
-	-webkit-animation: blink 1100ms linear infinite;
+  animation: blink 1100ms linear infinite;
+  -webkit-animation: blink 1100ms linear infinite;
 }
 
 @keyframes blink {
-	49% {opacity: 1;}
-	50% {opacity: 0;}
-	89% {opacity: 0;}
-	90% {opacity: 1;}
+  49% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+  89% {
+    opacity: 0;
+  }
+  90% {
+    opacity: 1;
+  }
 }
 @-webkit-keyframes blink {
-	49% {opacity: 1;}
-	50% {opacity: 0;}
-	89% {opacity: 0;}
-	90% {opacity: 1;}
+  49% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+  89% {
+    opacity: 0;
+  }
+  90% {
+    opacity: 1;
+  }
 }

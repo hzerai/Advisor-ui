@@ -8,6 +8,7 @@ import { PieChartComponent } from './pie-chart/pie-chart.component';
 import { LineChartComponent } from './line-chart/line-chart.component';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
+import { formatDate } from "@angular/common";
 
 let zipFile: JSZip = new JSZip();
 
@@ -17,7 +18,7 @@ let zipFile: JSZip = new JSZip();
   styleUrls: ['./app.component.css']
 })
 export class AppComponent implements OnInit {
-
+  date: Date = new Date();
   @ViewChild(BubbleChartComponent) bubble: BubbleChartComponent | undefined;
   @ViewChild(PieChartComponent) pie: PieChartComponent | undefined;
   @ViewChild(LineChartComponent) line: LineChartComponent | undefined;
@@ -35,7 +36,12 @@ export class AppComponent implements OnInit {
   uploading: string;
   lineData: Date[] = [];
   currentFile: string;
-
+  fromDate: any;
+  fromTime: any;
+  toDate: any;
+  toTime: any;
+  exceptionNameFilter : string;
+  file : any;
   constructor(private advisor: AdvisorServiceService) { }
 
   ngOnInit(): void {
@@ -44,18 +50,38 @@ export class AppComponent implements OnInit {
       this.savedReports = JSON.parse(saved);
     }
   }
-  onSelectFile(event) {
+
+  fileChange(event){
     if (event.target.files[0]) {
+      this.file = event.target.files[0];
+    }
+  }
+
+  analyseFile() {
+    if (this.fromDate) {
+      this.fromDate = new Date(Date.parse(this.fromDate));
+      if (this.fromTime) {
+        this.fromDate.setHours(new Number(this.fromTime.split(':')[0]))
+        this.fromDate.setMinutes(new Number(this.fromTime.split(':')[1]))
+      }
+    }
+    if (this.toDate) {
+      this.toDate = new Date(Date.parse(this.toDate));
+      if (this.toTime) {
+        this.toDate.setHours(new Number(this.toTime.split(':')[0]))
+        this.toDate.setMinutes(new Number(this.toTime.split(':')[1]))
+      }
+    }
+    if (this.file) {
       this.log = {
-        name: event.target.files[0].name,
+        name: this.file.name,
         bytes: null
       }
       this.currentFile = this.log.name;
-      var reader = new FileReader();
       if (this.log.name.endsWith('zip')) {
-        this.uploading = 'Scanning all files contained in ' + this.log.name + ', please wait...';
+        this.uploading = 'DEEP SCANNING ' + this.log.name + ', PLEASE HOLD...';
         this.folderFiles = [];
-        zipFile.loadAsync(event.target.files[0]).then((zip) => {
+        zipFile.loadAsync(this.file).then((zip) => {
           this.exceptions = [];
           this.db = [];
           let zipSize: number = Object.keys(zip.files).length;
@@ -66,21 +92,25 @@ export class AppComponent implements OnInit {
               this.folderFiles.push({ fileName: fn, count: null });
             }
           })
-          this.type(this.folderFiles.map(v => v.fileName));
+          var text: string[] = [];
+          text.push(this.uploading);
+          text.push('SCAN COMPLETE')
+          text.push('FOUND ' + this.folderFiles.length + ' FILES')
+          text.push('PRINTING...')
+          this.folderFiles.forEach(v => text.push(v.fileName))
+          this.type(text);
           Object.keys(zip.files).forEach((filename) => {
             zip.files[filename].async('arraybuffer').then((fileData) => {
-
-              this.advisor.analyseLog(fileData).subscribe(e => {
+              this.advisor.analyseLog(fileData, this.fromDate, this.toDate, this.exceptionNameFilter).subscribe(e => {
                 zipSize--;
                 e.forEach(ex => {
                   var exe = this.prepare(ex);
                   var foundEx = this.exceptions.find(e => {
-                    if (e.message.trim() == 'empty' && e.message.trim() == '') {
+                    if (e.message.trim() != 'empty' && e.message.trim() != '') {
                       const filteredArray = e.exception.causedBy.filter(value => exe.exception.causedBy.includes(value));
                       return filteredArray.length > 0;
-                    } else {
-                      return e.message == exe.message
                     }
+                    return false;
                   });
                   var alreadyMapped = foundEx;
                   if (alreadyMapped) {
@@ -136,6 +166,7 @@ export class AppComponent implements OnInit {
                       window.localStorage.setItem('savedReports', JSON.stringify(savedItems))
                     }
                     this.log = null;
+                    this.file = null;
                     this.folderFiles = null;
                   },
                     1000);
@@ -148,10 +179,12 @@ export class AppComponent implements OnInit {
 
         });
       } else {
-        this.uploading = 'Scanning file ' + this.log.name + ', please wait...';
-        reader.readAsBinaryString(event.target.files[0])
+        this.uploading = 'SCANNING FILE ' + this.log.name + ', PLEASE HOLD...';
+        var reader = new FileReader();
+        reader.readAsBinaryString(this.file)
         reader.onload = (event) => {
           this.log.bytes = event.target.result;
+          this.type(this.uploading);
           this.analyse();
         }
       }
@@ -202,19 +235,18 @@ export class AppComponent implements OnInit {
   }
 
   analyse() {
-    this.advisor.analyseLog(this.log.bytes).subscribe(e => {
+    this.advisor.analyseLog(this.log.bytes, this.fromDate, this.toDate, this.exceptionNameFilter).subscribe(e => {
       {
         this.exceptions = [];
         this.db = [];
         e.forEach(ex => {
           var exe = this.prepare(ex);
           var foundEx = this.exceptions.find(e => {
-            if (e.message.trim() == 'empty' && e.message.trim() == '') {
+            if (e.message.trim() != 'empty' && e.message.trim() != '') {
               const filteredArray = e.exception.causedBy.filter(value => exe.exception.causedBy.includes(value));
               return filteredArray.length > 0;
-            } else {
-              return e.message == exe.message
             }
+            return false;
           });
           var alreadyMapped = foundEx;
           if (alreadyMapped) {
@@ -255,6 +287,7 @@ export class AppComponent implements OnInit {
         })
         window.localStorage.setItem('savedReports', JSON.stringify(savedItems))
         this.log = null;
+        this.file = null;
       }
     })
 
@@ -371,40 +404,29 @@ export class AppComponent implements OnInit {
   }
 
   type(text) {
-    text.unshift('Found files : ');
     var screen = document.getElementById('screen');
-    //You have to check for lines and if the screen is an element
     if (!text || !text.length || !(screen instanceof Element)) {
       return;
     }
-
-    //if it is not a string, you will want to make it into one
     if ('string' !== typeof text) {
       text = text.join('\n');
     }
 
-    //normalize newlines, and split it to have a nice array
     text = text.replace(/\r\n?/g, '\n').split('');
-
-    //the prompt is always the last child
     var prompt: any = screen.lastChild;
-    prompt.className = 'typing';
+    prompt.className = 'idle';
 
-    var typer = function () {
+    const typer = function () {
       var character = text.shift();
       screen.insertBefore(
-        //newlines must be written as a `<br>`
         character === '\n'
           ? document.createElement('br')
           : document.createTextNode(character),
         prompt
       );
 
-      //only run this again if there are letters
       if (text.length) {
-        setTimeout(typer, 70);
-      } else {
-        prompt.className = 'idle';
+        setTimeout(typer, 10);
       }
     };
     setTimeout(typer, 100);
@@ -429,35 +451,35 @@ export class AppComponent implements OnInit {
     this.downloading = true;
 
     setTimeout(() => {
+      var exceptions = document.getElementsByClassName("exception");
+      for (var i = 0; i < exceptions.length; i++) {
+        exceptions[i].classList.remove('collapse')
+      }
 
+      let content = document.getElementById('content');
+      let PDF = new jsPDF('p', 'mm', 'a4', true);
+      html2canvas(content).then(canvas => {
+        let fileWidth = 210;
+        let fileHeight = canvas.height * fileWidth / canvas.width;
+        for (var i = 0; i < canvas.height / 2730; ++i) {
+          const content = this.getClippedRegion(canvas, 0, 2700 * i, canvas.width, canvas.height).toDataURL('image/png', 0.5)
+          if (i > 0) {
+            PDF.addPage('a4', 'p')
+            PDF.setPage(i + 1)
+          }
+          PDF.addImage(content, 'PNG', 0, 0, fileWidth, fileHeight - 20)
+        }
+
+      }).finally(() => {
+        PDF.save(this.currentFile + '__' + new Date().toISOString() + '__Advisor-Analysis.pdf');
+        for (var i = 0; i < exceptions.length; i++) {
+          exceptions[i].classList.add('collapse')
+        }
+        this.downloading = false;
+      });
     }, 1000);
 
-    var exceptions = document.getElementsByClassName("exception");
-    for (var i = 0; i < exceptions.length; i++) {
-      exceptions[i].classList.remove('collapse')
-    }
 
-    let content = document.getElementById('content');
-    let PDF = new jsPDF('p', 'mm', 'a4', true);
-    html2canvas(content).then(canvas => {
-      let fileWidth = 210;
-      let fileHeight = canvas.height * fileWidth / canvas.width;
-      for (var i = 0; i < canvas.height / 2730; ++i) {
-        const content = this.getClippedRegion(canvas, 0, 2700 * i, canvas.width, canvas.height).toDataURL('image/png', 0.5)
-        if (i > 0) {
-          PDF.addPage('a4', 'p')
-          PDF.setPage(i + 1)
-        }
-        PDF.addImage(content, 'PNG', 0, 0, fileWidth, fileHeight - 20)
-      }
-
-    }).finally(() => {
-      PDF.save(this.currentFile + '__' + new Date().toISOString() + '__Advisor-Analysis.pdf');
-      for (var i = 0; i < exceptions.length; i++) {
-        exceptions[i].classList.add('collapse')
-      }
-      this.downloading = false;
-    });
   }
 
 }
