@@ -9,6 +9,7 @@ import { LineChartComponent } from './line-chart/line-chart.component';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 import { formatDate } from "@angular/common";
+import * as XLSX from 'xlsx';
 
 let zipFile: JSZip = new JSZip();
 
@@ -40,8 +41,8 @@ export class AppComponent implements OnInit {
   fromTime: any;
   toDate: any;
   toTime: any;
-  exceptionNameFilter : string;
-  file : any;
+  exceptionNameFilter: string;
+  file: any;
   constructor(private advisor: AdvisorServiceService) { }
 
   ngOnInit(): void {
@@ -51,7 +52,7 @@ export class AppComponent implements OnInit {
     }
   }
 
-  fileChange(event){
+  fileChange(event) {
     if (event.target.files[0]) {
       this.file = event.target.files[0];
     }
@@ -172,6 +173,13 @@ export class AppComponent implements OnInit {
                     1000);
 
                 }
+              }, err => {
+                this.db = [];
+                this.uploading = null;
+                this.log = null;
+                this.file = null;
+                this.folderFiles = null;
+                this.error = err.statusText;
               })
 
             });
@@ -289,11 +297,18 @@ export class AppComponent implements OnInit {
         this.log = null;
         this.file = null;
       }
+    }, err => {
+      this.db = [];
+      this.uploading = null;
+      this.log = null;
+      this.file = null;
+      console.log(err)
+      this.error = err.statusText;
     })
 
 
   }
-
+  error: any;
   loadSavedReport(savedReport) {
     this.exceptions = savedReport.data;
     this.db = savedReport.data;
@@ -445,10 +460,10 @@ export class AppComponent implements OnInit {
 
     return canvas;
   }
-  downloading: boolean = false;
+  downloading: string;
 
   SavePDF() {
-    this.downloading = true;
+    this.downloading = 'pdf';
 
     setTimeout(() => {
       var exceptions = document.getElementsByClassName("exception");
@@ -475,11 +490,25 @@ export class AppComponent implements OnInit {
         for (var i = 0; i < exceptions.length; i++) {
           exceptions[i].classList.add('collapse')
         }
-        this.downloading = false;
+        this.downloading = null;
       });
     }, 1000);
 
 
   }
+
+  exportexcel(): void {
+    this.downloading = 'excel';
+    setTimeout(() => {
+      let element = document.getElementById('excel-table');
+      const ws: XLSX.WorkSheet = XLSX.utils.table_to_sheet(element);
+      const wb: XLSX.WorkBook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Advisor-Analysis');
+      XLSX.writeFile(wb, this.currentFile + '__' + new Date().toISOString() + '__Advisor-Analysis.xlsx');
+      this.downloading = null;
+    }, 1000);
+  }
+
+
 
 }

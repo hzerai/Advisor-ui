@@ -9,7 +9,13 @@
 .error-actions .btn {
   margin-right: 10px;
 }
-
+.caused-by {
+	background-color: #000000;
+	color: rgb(10, 228, 10);
+	font-family: Courier;
+  font-size: small;
+  font-weight: lighter;
+}
 .console-body {
   background-color: black;
   background-image: radial-gradient(
@@ -81,4 +87,7 @@
   90% {
     opacity: 1;
   }
+}
+.dropdown-item:hover {
+  background-color: transparent;
 }

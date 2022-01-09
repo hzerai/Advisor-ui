@@ -2,10 +2,12 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { Exception } from './Exception';
+import { environment } from 'src/environments/environment';
 @Injectable({
   providedIn: 'root'
 })
 export class AdvisorServiceService {
+  private api = environment.api ;
 
   constructor(private http: HttpClient) { }
 
@@ -24,7 +26,7 @@ export class AdvisorServiceService {
     if (exceptionNameFilter != null) {
       params = params.append('exceptionName', exceptionNameFilter)
     }
-    return this.http.post<Exception[]>("http://localhost:8080/api", log, { params });
+    return this.http.post<Exception[]>(this.api, log, { params });
   }
 
 }
