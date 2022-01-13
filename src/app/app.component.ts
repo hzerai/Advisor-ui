@@ -43,6 +43,10 @@ export class AppComponent implements OnInit {
   toTime: any;
   exceptionNameFilter: string;
   file: any;
+  files: FileList;
+  fileNb: number = 0;
+
+
   constructor(private advisor: AdvisorServiceService) { }
 
   ngOnInit(): void {
@@ -53,8 +57,13 @@ export class AppComponent implements OnInit {
   }
 
   fileChange(event) {
-    if (event.target.files[0]) {
+    if (event.target.files.length == 1) {
       this.file = event.target.files[0];
+    } else if (event.target.files.length > 1) {
+      this.files = event.target.files;
+    } else {
+      this.file = null;
+      this.files = null;
     }
   }
 
@@ -105,13 +114,18 @@ export class AppComponent implements OnInit {
               this.advisor.analyseLog(fileData, this.fromDate, this.toDate, this.exceptionNameFilter).subscribe(e => {
                 zipSize--;
                 e.forEach(ex => {
-                  var exe = this.prepare(ex);
+                  var exe = this.prepare(ex, filename);
                   var foundEx = this.exceptions.find(e => {
-                    if (e.message.trim() != 'empty' && e.message.trim() != '') {
-                      const filteredArray = e.exception.causedBy.filter(value => exe.exception.causedBy.includes(value));
-                      return filteredArray.length > 0;
-                    }
-                    return false;
+                    // if (e.message.trim() == 'empty' || e.message.trim() == '' || e.message.trim() == 'null') {
+                    //   if (e.hint && exe.hint.trim() != '' && e.todo && e.todo.trim() != '') {
+                    //     return e.todo == exe.todo && e.hint == exe.hint;
+                    //   } else {
+                    //     return e.exception.stackTrace.includes(exe.exception.stackTrace) || exe.exception.stackTrace.includes(e.exception.stackTrace);
+                    //   }
+                    // } else {
+                    //   return e.message.trim() == exe.message.trim();
+                    // }
+                    return e.key == exe.key;
                   });
                   var alreadyMapped = foundEx;
                   if (alreadyMapped) {
@@ -156,22 +170,25 @@ export class AppComponent implements OnInit {
                     try {
                       window.localStorage.setItem('savedReports', JSON.stringify(savedItems))
                     } catch (Error) {
-                      window.localStorage.removeItem('savedReports')
-                      savedItems = [];
-                      savedItems.unshift({
-                        date: new Date().toISOString(),
-                        data: this.exceptions,
-                        lineData: this.lineData,
-                        fileName: this.log.name
-                      })
-                      window.localStorage.setItem('savedReports', JSON.stringify(savedItems))
+                      try {
+                        window.localStorage.removeItem('savedReports')
+                        savedItems = [];
+                        savedItems.unshift({
+                          date: new Date().toISOString(),
+                          data: this.exceptions,
+                          lineData: this.lineData,
+                          fileName: this.log.name
+                        })
+                        window.localStorage.setItem('savedReports', JSON.stringify(savedItems))
+                      } catch (Error) {
+                      }
+
                     }
                     this.log = null;
                     this.file = null;
                     this.folderFiles = null;
                   },
                     1000);
-
                 }
               }, err => {
                 this.db = [];
@@ -193,19 +210,121 @@ export class AppComponent implements OnInit {
         reader.onload = (event) => {
           this.log.bytes = event.target.result;
           this.type(this.uploading);
-          this.analyse();
+          this.analyse(null);
         }
       }
+    } else if (this.files) {
+      this.uploading = 'SCANNING Multiple files';
+      this.log = {
+        name: 'multiple',
+        bytes: null
+      }
+      const text: string[] = []
+      text.push('SCANNING MULTIPLE FILES, PLEASE HOLD...');
+      for (var i = 0; i < this.files.length; i++) {
+        var element = this.files.item(i);
+        text.push(element.name);
+      }
+      this.type(text);
+      this.fileNb = this.files.length;
 
+      for (var i = 0; i < this.files.length; i++) {
+        const element = this.files.item(i);
+        var reader = new FileReader();
+        reader.readAsBinaryString(element)
+        reader.onload = (event) => {
+          this.log.bytes = event.target.result;
+          this.log.name = element.name;
+          this.currentFile = this.log.name;
+          this.exceptions = [];
+          this.db = [];
+          this.analyse(element.name);
+        }
+      }
     }
+  }
+
+  analyse(fileName) {
+    this.advisor.analyseLog(this.log.bytes, this.fromDate, this.toDate, this.exceptionNameFilter).subscribe(e => {
+      {
+        if (!fileName) {
+          this.exceptions = [];
+          this.db = [];
+        }
+        e.forEach(ex => {
+          var exe = this.prepare(ex, fileName);
+          var foundEx = this.exceptions.find(e => {
+            return e.key == exe.key;
+          });
+          var alreadyMapped = foundEx;
+          if (alreadyMapped) {
+            var ch = alreadyMapped.child;
+            if (ch) {
+              alreadyMapped = ch;
+              while (alreadyMapped) {
+                ch = alreadyMapped;
+                alreadyMapped = alreadyMapped.child;
+              }
+              ch.child = exe;
+            } else {
+              alreadyMapped.child = exe
+            }
+            foundEx.count = foundEx.count + exe.count;
+          } else {
+            this.exceptions.push(exe);
+            this.db.push(exe);
+          }
+
+        })
+        this.fileNb--;
+        if (this.fileNb <= 0) {
+          var fileNames: string = '';
+          for (var i = 0; i < this.files.length; i++) {
+            var element = this.files.item(i);
+            fileNames = fileNames + '_' + element.name;
+          }
+          this.uploading = null;
+          var saved: string = window.localStorage.getItem('savedReports');
+          var savedItems: { date: string, data: Exception[], lineData: any, fileName: string }[];
+          if (saved != null) {
+            savedItems = JSON.parse(saved);
+            if (savedItems.length > 2) {
+              savedItems.pop();
+            }
+          } else {
+            savedItems = [];
+          }
+          savedItems.unshift({
+            date: new Date().toISOString(),
+            data: this.exceptions,
+            lineData: this.lineData,
+            fileName: fileNames
+          })
+          window.localStorage.setItem('savedReports', JSON.stringify(savedItems))
+          this.log = null;
+          this.file = null;
+          this.files = null;
+        }
+      }
+    }, err => {
+      this.db = [];
+      this.uploading = null;
+      this.log = null;
+      this.file = null;
+      this.files = null;
+      console.log(err)
+      this.error = err.statusText;
+    })
   }
 
 
   occurences(exception: Exception) {
     var result: ExceptionData[] = [];
     var ch: Exception = exception.child;
+    exception.exception.logFile = exception.logFile;
     result.push(exception.exception);
     while (ch != null) {
+      ch.exception.logFile = ch.logFile;
       result.unshift(ch.exception);
       ch = ch.child;
     }
@@ -238,76 +357,8 @@ export class AppComponent implements OnInit {
     this.pie.exceptions = this.exceptions;
     this.pie.ngOnInit();
     this.pie.chart.update();
-
-
   }
 
-  analyse() {
-    this.advisor.analyseLog(this.log.bytes, this.fromDate, this.toDate, this.exceptionNameFilter).subscribe(e => {
-      {
-        this.exceptions = [];
-        this.db = [];
-        e.forEach(ex => {
-          var exe = this.prepare(ex);
-          var foundEx = this.exceptions.find(e => {
-            if (e.message.trim() != 'empty' && e.message.trim() != '') {
-              const filteredArray = e.exception.causedBy.filter(value => exe.exception.causedBy.includes(value));
-              return filteredArray.length > 0;
-            }
-            return false;
-          });
-          var alreadyMapped = foundEx;
-          if (alreadyMapped) {
-            var ch = alreadyMapped.child;
-            if (ch) {
-              alreadyMapped = ch;
-              while (alreadyMapped) {
-                ch = alreadyMapped;
-                alreadyMapped = alreadyMapped.child;
-              }
-              ch.child = exe;
-            } else {
-              alreadyMapped.child = exe
-            }
-            foundEx.count = foundEx.count + exe.count;
-          } else {
-            this.exceptions.push(exe);
-            this.db.push(exe);
-          }
-
-        })
-        this.uploading = null;
-        var saved: string = window.localStorage.getItem('savedReports');
-        var savedItems: { date: string, data: Exception[], lineData: any, fileName: string }[];
-        if (saved != null) {
-          savedItems = JSON.parse(saved);
-          if (savedItems.length > 2) {
-            savedItems.pop();
-          }
-        } else {
-          savedItems = [];
-        }
-        savedItems.unshift({
-          date: new Date().toISOString(),
-          data: this.exceptions,
-          lineData: this.lineData,
-          fileName: this.log.name
-        })
-        window.localStorage.setItem('savedReports', JSON.stringify(savedItems))
-        this.log = null;
-        this.file = null;
-      }
-    }, err => {
-      this.db = [];
-      this.uploading = null;
-      this.log = null;
-      this.file = null;
-      console.log(err)
-      this.error = err.statusText;
-    })
-
-
-  }
   error: any;
   loadSavedReport(savedReport) {
     this.exceptions = savedReport.data;
@@ -317,7 +368,8 @@ export class AppComponent implements OnInit {
   }
 
 
-  prepare(ex: Exception) {
+  prepare(ex: Exception, fileName: string) {
+    ex.logFile = fileName;
     ex.count = 1;
     ex.lastOccurence = ex.exception.date;
     ex.firstOccurence = ex.exception.date;
@@ -326,6 +378,7 @@ export class AppComponent implements OnInit {
     var ch: Exception = ex.child;
     var message: string = ex.exception.message;
     while (ch != null) {
+      ch.logFile = fileName;
       ch.exception.causedBy.reverse();
       ex.firstOccurence = ch.exception.date;
       this.lineData.push(ch.exception.date);
@@ -419,32 +472,34 @@ export class AppComponent implements OnInit {
   }
 
   type(text) {
-    var screen = document.getElementById('screen');
-    if (!text || !text.length || !(screen instanceof Element)) {
-      return;
-    }
-    if ('string' !== typeof text) {
-      text = text.join('\n');
-    }
-
-    text = text.replace(/\r\n?/g, '\n').split('');
-    var prompt: any = screen.lastChild;
-    prompt.className = 'idle';
-
-    const typer = function () {
-      var character = text.shift();
-      screen.insertBefore(
-        character === '\n'
-          ? document.createElement('br')
-          : document.createTextNode(character),
-        prompt
-      );
-
-      if (text.length) {
-        setTimeout(typer, 10);
+    setTimeout(() => {
+      var screen = document.getElementById('screen');
+      if (!text || !text.length || !(screen instanceof Element)) {
+        return;
       }
-    };
-    setTimeout(typer, 100);
+      if ('string' !== typeof text) {
+        text = text.join('\n');
+      }
+
+      text = text.replace(/\r\n?/g, '\n').split('');
+      var prompt: any = screen.lastChild;
+      prompt.className = 'idle';
+
+      const typer = function () {
+        var character = text.shift();
+        screen.insertBefore(
+          character === '\n'
+            ? document.createElement('br')
+            : document.createTextNode(character),
+          prompt
+        );
+        if (text.length) {
+          setTimeout(typer, 10);
+        }
+      };
+      setTimeout(typer, 100);
+    }, 500);
+
   };
 
   getClippedRegion(image, x, y, width, height) {

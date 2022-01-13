@@ -15,14 +15,20 @@ export class PieChartComponent implements OnInit {
   @Output() ex = new EventEmitter<Exception>();
 
   ngOnInit(): void {
-    var data: number[] = [];
-    var names: string[] = [];
+    var names: {name : string, count : number}[] = [];
     this.exceptions?.forEach(e => {
-      names.push(e.exception.name);
-      data.push(e.count);
+     var i = names.find(i => i.name == e.exception.name)
+     if(i){
+      i.count = i.count + e.count;
+     } else {
+      names.push({
+        name : e.exception.name,
+        count : e.count
+      })
+     }
     })
-    this.pieChartData.labels = names;
-    this.pieChartData.datasets[0].data = data;
+    this.pieChartData.labels = names.map(i => i.name);
+    this.pieChartData.datasets[0].data = names.map(i => i.count);
   }
 
   public pieChartData: ChartData<'pie', number[], string | string[]> = {

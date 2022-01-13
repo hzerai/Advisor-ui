@@ -13,11 +13,43 @@
           <p class="lead">This is a simple proof of concept for Advisor.</p>
           <hr class="my-4">
           <p>Our aim is to collect more user requirements.</p>
-          <button class="btn btn-primary" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasBottom"
-            aria-controls="offcanvasBottom">Get started</button>
-
         </div>
-        <div *ngIf="savedReports" class="raw" style="margin-top: 20rem;">
+        <div class="rounded shadow-lg body-bg p-5 mt-5" style="margin-right: 15rem; margin-left: 15rem;">
+          <div class="input-group">
+            <input (change)="fileChange($event)" type="file" class="form-control" id="inputGroupFile04"
+              aria-describedby="inputGroupFileAddon04" aria-label="Upload" multiple>
+            <button (click)="analyseFile()" class="btn btn-primary" type="button" id="inputGroupFileAddon04"
+              [disabled]="!file && !files">
+              <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="currentColor"
+                class="bi bi-cloud-arrow-up" viewBox="0 0 19 19">
+                <path fill-rule="evenodd"
+                  d="M7.646 5.146a.5.5 0 0 1 .708 0l2 2a.5.5 0 0 1-.708.708L8.5 6.707V10.5a.5.5 0 0 1-1 0V6.707L6.354 7.854a.5.5 0 1 1-.708-.708l2-2z" />
+                <path
+                  d="M4.406 3.342A5.53 5.53 0 0 1 8 2c2.69 0 4.923 2 5.166 4.579C14.758 6.804 16 8.137 16 9.773 16 11.569 14.502 13 12.687 13H3.781C1.708 13 0 11.366 0 9.318c0-1.763 1.266-3.223 2.942-3.593.143-.863.698-1.723 1.464-2.383zm.653.757c-.757.653-1.153 1.44-1.153 2.056v.448l-.445.049C2.064 6.805 1 7.952 1 9.318 1 10.785 2.23 12 3.781 12h8.906C13.98 12 15 10.988 15 9.773c0-1.216-1.02-2.228-2.313-2.228h-.5v-.5C12.188 4.825 10.328 3 8 3a4.53 4.53 0 0 0-2.941 1.1z" />
+              </svg>
+              Analyse</button>
+          </div>
+          <div style="margin-top: 3vh;">
+            <span class="badge bg-secondary mb-1">Limit your search </span>
+            <div class="input-group">
+              <span class="input-group-text" style="width: 140px;">From date </span>
+              <input [(ngModel)]="fromDate" type="date" class="form-control">
+              <input [(ngModel)]="fromTime" type="time" class="form-control">
+            </div>
+            <div class="input-group">
+              <span class="input-group-text" style="width: 140px;">To date </span>
+              <input [(ngModel)]="toDate" type="date" class="form-control">
+              <input [(ngModel)]="toTime" type="time" class="form-control">
+            </div>
+          </div>
+          <div style="margin-top: 2vh;">
+            <div class="input-group">
+              <span class="input-group-text" style="width: 140px;">Contains text </span>
+              <input [(ngModel)]="exceptionNameFilter" type="text" class="form-control">
+            </div>
+          </div>
+        </div>
+        <div *ngIf="savedReports" class="raw" style="margin-top: 10rem;">
           <div class="container">
             <h4>Recent analysis</h4>
           </div>
@@ -34,49 +66,9 @@
         </div>
 
 
-        <div class="offcanvas offcanvas-bottom container d-flex align-items-center" tabindex="-1" id="offcanvasBottom"
-          aria-labelledby="offcanvasBottomLabel">
-          <div class="input-group" style="width: 30%; margin-top: 4vh">
-            <input (change)="fileChange($event)" type="file" class="form-control" id="inputGroupFile04"
-              aria-describedby="inputGroupFileAddon04" aria-label="Upload">
-            <button (click)="analyseFile()" class="btn btn-primary" type="button" id="inputGroupFileAddon04"
-              [disabled]="!file" data-bs-dismiss="offcanvas" aria-label="Close">
-              <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="currentColor"
-                class="bi bi-cloud-arrow-up" viewBox="0 0 19 19">
-                <path fill-rule="evenodd"
-                  d="M7.646 5.146a.5.5 0 0 1 .708 0l2 2a.5.5 0 0 1-.708.708L8.5 6.707V10.5a.5.5 0 0 1-1 0V6.707L6.354 7.854a.5.5 0 1 1-.708-.708l2-2z" />
-                <path
-                  d="M4.406 3.342A5.53 5.53 0 0 1 8 2c2.69 0 4.923 2 5.166 4.579C14.758 6.804 16 8.137 16 9.773 16 11.569 14.502 13 12.687 13H3.781C1.708 13 0 11.366 0 9.318c0-1.763 1.266-3.223 2.942-3.593.143-.863.698-1.723 1.464-2.383zm.653.757c-.757.653-1.153 1.44-1.153 2.056v.448l-.445.049C2.064 6.805 1 7.952 1 9.318 1 10.785 2.23 12 3.781 12h8.906C13.98 12 15 10.988 15 9.773c0-1.216-1.02-2.228-2.313-2.228h-.5v-.5C12.188 4.825 10.328 3 8 3a4.53 4.53 0 0 0-2.941 1.1z" />
-              </svg>
-              Analyse</button>
-          </div>
-          <div style="width: 30%; margin-top: 2vh;">
-            <span class="badge bg-secondary mb-1">Limit your search </span>
-            <div class="input-group">
-              <span class="input-group-text" style="width: 140px;">From date </span>
-              <input [(ngModel)]="fromDate" type="date" class="form-control">
-              <input [(ngModel)]="fromTime" type="time" class="form-control">
-            </div>
-            <div class="input-group">
-              <span class="input-group-text" style="width: 140px;">To date </span>
-              <input [(ngModel)]="toDate" type="date" class="form-control">
-              <input [(ngModel)]="toTime" type="time" class="form-control">
-            </div>
-          </div>
-          <div style="width: 30%; margin-top: 0.5vh;">
-            <div class="input-group">
-              <span class="input-group-text" style="width: 140px;">Contains text </span>
-              <input [(ngModel)]="exceptionNameFilter" type="text" class="form-control">
-            </div>
-          </div>
-        </div>
+
       </div>
       <div class="container" *ngIf="this.uploading">
-        <!-- <div class="d-flex justify-content-center mt-5">
-          <button class="btn btn-primary" type="button" disabled>
-            <span class="spinner-grow spinner-grow-sm me-3" role="status" aria-hidden="true"></span> {{this.uploading}}
-          </button>
-        </div> -->
         <div class="container-fluid p-5">
           <div class="shadow-lg rounded console-body p-2" style="height: 80vh;">
             <div id="screen" class="container">
@@ -234,7 +226,7 @@
           <div *ngFor="let exception of exceptions; let e = index" class="shadow-lg p-2 mb-2 bg-body rounded">
             <a class="text-decoration-none text-dark" data-bs-toggle="collapse" href="#exception{{e}}" role="button"
               aria-expanded="true" [attr.aria-controls]="'exception' +e">
-              <div class="row p-2">
+              <div class="row p-2" title="{{'Found in file : ' +exception.logFile}}">
                 <div class="col-6 fw-bold">{{exception.exception.name}}</div>
                 <div class="col-1">{{exception.count}}</div>
                 <div class="col-2">{{exception.firstOccurence}}</div>
@@ -298,7 +290,7 @@
               <div id="editor" class="container mt-1  bg-body rounded shadow border border-1 rounded">
                 <div *ngFor="let occurence of occurences(exception); let o = index" class="p-1 border-bottom">
                   <a class="text-decoration-none text-dark" data-bs-toggle="collapse" href="#cb{{e}}-{{o}}"
-                    role="button" aria-expanded="false" [attr.aria-controls]="'cb'+e+'-'+o">
+                    role="button" aria-expanded="false" [attr.aria-controls]="'cb'+e+'-'+o" title="{{'Found in file : ' +occurence.logFile}}">
                     <div class="row ">
                       <div class="col-3 d-flex justify-content-center">{{occurence.date}}</div>
                       <div class="col-4 d-flex justify-content-center">{{occurence.logger}}</div>

@@ -2,6 +2,7 @@ import { Component, Input, OnInit, ViewChild } from '@angular/core';
 import { ChartConfiguration, ChartEvent, ChartType } from 'chart.js';
 import { BaseChartDirective } from 'ng2-charts';
 import { formatDate } from "@angular/common";
+import DatalabelsPlugin from 'chartjs-plugin-datalabels';
 
 @Component({
   selector: 'app-line-chart',
@@ -32,7 +33,6 @@ export class LineChartComponent implements OnInit {
     })
     this.lineChartData.labels = [];
     this.lineChartData.datasets[0].data = [];
-    this.lineChartData.datasets[1].data = []
     data.sort((b, a) => {
       var first = a.date == null ? 0 : new Date(a.date).getTime();
       var second = b.date == null ? 0 : new Date(b.date).getTime();
@@ -40,8 +40,8 @@ export class LineChartComponent implements OnInit {
     }).forEach(d => {
       this.lineChartData.labels.push(formatDate(d.date, 'dd MMM H:mm', 'en'));
       this.lineChartData.datasets[0].data.push(d.count);
-      this.lineChartData.datasets[1].data.push(d.count)
     })
+
   }
 
 
@@ -98,20 +98,7 @@ export class LineChartComponent implements OnInit {
         hoverBackgroundColor: this.getBGC,
         hoverBorderWidth: 2,
         hoverBorderColor: 'cyan',
-        order: 1
-      }, {
-        type: 'line',
-        borderWidth: 2,
-        backgroundColor: 'cyan',
-        borderColor: 'cyan',
-        data: [],
-        order: 0,
-        pointStyle: 'star',
-        pointBorderColor: 'cyan',
-        pointHoverBorderColor: 'red',
-        pointHitRadius: 30,
-        pointHoverRadius: 10,
-        pointRadius: 6,
+        // order: 1
       }
     ],
     labels: []
@@ -233,6 +220,8 @@ export class LineChartComponent implements OnInit {
       },
     }
   };
+
+  public lineChartPlugins = [DatalabelsPlugin];
 
   public lineChartType: ChartType = 'line';
 

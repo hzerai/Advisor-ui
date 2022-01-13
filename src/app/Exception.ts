@@ -2,6 +2,8 @@ import { Event } from "./Event";
 import { ExceptionData } from "./ExceptionData";
 
 export class Exception {
+  logFile : string;
+  key : string;
   event: Event;
   exception: ExceptionData;
   child: Exception = null;
