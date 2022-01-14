@@ -16,6 +16,9 @@
   font-size: small;
   font-weight: lighter;
 }
+.caused-by::-webkit-scrollbar {
+  display: none;
+}
 .console-body {
   background-color: black;
   background-image: radial-gradient(

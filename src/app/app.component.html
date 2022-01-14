@@ -1,11 +1,17 @@
 <nav class="navbar navbar-dark bg-primary">
-  <div class="mx-3 container-fluid">
-    <a href="" style="text-decoration: none;"> <span class="navbar-brand h1">Advisor</span></a>
-  </div>
+  <a href="" class="mx-3 px-3" style="text-decoration: none;color: #f7f7f7ee;">
+    <div class="px-5">
+      <p class="h1 lh-1 my-0">ADVISOR</p>
+    </div>
+    <div class="d-flex flex-wrap justify-content-end">
+      <small class="fw-lighter lh-1">by</small>
+      <img src="assets\img\palmyraLogo.png" alt="advisor logo" style="max-height: 3vh;">
+    </div>
+  </a>
 </nav>
 
-<div class="container-fluid">
-  <div class="container my-3">
+<div class="container container-fluid">
+  <div class="my-3">
     <main>
       <div *ngIf="!this.db && !this.uploading">
         <div class="jumbotron">
@@ -68,7 +74,7 @@
 
 
       </div>
-      <div class="container" *ngIf="this.uploading">
+      <div class="" *ngIf="this.uploading">
         <div class="container-fluid p-5">
           <div class="shadow-lg rounded console-body p-2" style="height: 80vh;">
             <div id="screen" class="container">
@@ -110,14 +116,19 @@
       <div *ngIf="db && db.length > 0 && !log">
         <div class="row d-flex flex-md-nowrap my-3">
           <div class="input-group">
-            <span class="input-group-text" id="basic-addon1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
-                fill="currentColor" width="24" height="24">
-                <path fill-rule="evenodd"
-                  d="M7.72.22a.75.75 0 011.06 0l1.204 1.203A4.983 4.983 0 0112 1c.717 0 1.4.151 2.016.423L15.22.22a.75.75 0 011.06 1.06l-.971.972A4.988 4.988 0 0117 6v1.104a2.755 2.755 0 011.917 1.974l1.998-.999a.75.75 0 01.67 1.342L19 10.714V13.5l3.25.003a.75.75 0 110 1.5L19 15.001V16a7.02 7.02 0 01-.204 1.686.833.833 0 01.04.018l2.75 1.375a.75.75 0 11-.671 1.342l-2.638-1.319A7 7 0 0112 23a7 7 0 01-6.197-3.742l-2.758 1.181a.75.75 0 11-.59-1.378l2.795-1.199A7.007 7.007 0 015 16v-.996H1.75a.75.75 0 010-1.5H5v-2.79L2.415 9.42a.75.75 0 01.67-1.342l1.998.999A2.755 2.755 0 017 7.104V6a4.99 4.99 0 011.69-3.748l-.97-.972a.75.75 0 010-1.06zM8.5 7h7V6a3.5 3.5 0 10-7 0v1zm-2 3.266V9.75c0-.69.56-1.25 1.25-1.25h8.5c.69 0 1.25.56 1.25 1.25V16a5.5 5.5 0 01-11 0v-5.734z">
-                </path>
-              </svg></span>
-            <input type="text" class="form-control" placeholder="Search" aria-label="Search" [(ngModel)]="search"
-              (keyup)="updateList() " aria-describedby="basic-addon1" [disabled]="downloading">
+            <span class="input-group-text" id="basic-addon1">
+              <a (click)="initFilter()" data-bs-toggle="collapse" href="#collapseExample" role="button"
+                aria-expanded="false" aria-controls="collapseExample">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+                  <path fill-rule="evenodd"
+                    d="M7.72.22a.75.75 0 011.06 0l1.204 1.203A4.983 4.983 0 0112 1c.717 0 1.4.151 2.016.423L15.22.22a.75.75 0 011.06 1.06l-.971.972A4.988 4.988 0 0117 6v1.104a2.755 2.755 0 011.917 1.974l1.998-.999a.75.75 0 01.67 1.342L19 10.714V13.5l3.25.003a.75.75 0 110 1.5L19 15.001V16a7.02 7.02 0 01-.204 1.686.833.833 0 01.04.018l2.75 1.375a.75.75 0 11-.671 1.342l-2.638-1.319A7 7 0 0112 23a7 7 0 01-6.197-3.742l-2.758 1.181a.75.75 0 11-.59-1.378l2.795-1.199A7.007 7.007 0 015 16v-.996H1.75a.75.75 0 010-1.5H5v-2.79L2.415 9.42a.75.75 0 01.67-1.342l1.998.999A2.755 2.755 0 017 7.104V6a4.99 4.99 0 011.69-3.748l-.97-.972a.75.75 0 010-1.06zM8.5 7h7V6a3.5 3.5 0 10-7 0v1zm-2 3.266V9.75c0-.69.56-1.25 1.25-1.25h8.5c.69 0 1.25.56 1.25 1.25V16a5.5 5.5 0 01-11 0v-5.734z">
+                  </path>
+                </svg>
+              </a>
+            </span>
+            <input type="text" class="form-control"
+              placeholder="Search everything or click the debug button for advanced search" aria-label="Search"
+              [(ngModel)]="search" (keyup)="updateList() " aria-describedby="basic-addon1" [disabled]="downloading">
             <div class="dropend">
               <button class="btn btn-primary pulse" id="dropdownMenu2" data-bs-toggle="dropdown" aria-expanded="false"
                 type="button" [disabled]="downloading">
@@ -205,6 +216,69 @@
             </div>
           </div>
         </div>
+        <div class="collapse mx-3" id="collapseExample">
+          <div class="rounded p-3 shadow-lg row d-flex flex-wrap">
+            <p class="h4">Filter result</p>
+            <div class="mb-1 col-4">
+              <select class="form-select" aria-label="Exception" [(ngModel)]="filterObject.name"
+                [disabled]="filterNames && filterNames.length <= 1">
+                <option [value]="null">Exception</option>
+                <option *ngFor="let item of filterNames" [value]="item"
+                  [selected]="filterNames && filterNames.length <= 1">{{filterNames.length <= 1 ? 'Exception : ' +item
+                    :item}}</option>
+              </select>
+            </div>
+            <div class="mb-1 col-4">
+              <select class="form-select" aria-label="Level" [(ngModel)]="filterObject.level"
+                [disabled]="filterLevels && filterLevels.length <= 1">
+                <option [value]="null">Level</option>
+                <option *ngFor="let item of filterLevels" [value]="item"
+                  [selected]="filterLevels && filterLevels.length <= 1">{{filterLevels.length <= 1 ? 'Level : ' +item
+                    :item}}</option>
+              </select>
+            </div>
+            <div class="mb-1 col-4">
+              <select class="form-select" aria-label="Thread" [(ngModel)]="filterObject.thread"
+                [disabled]="filterThreads && filterThreads.length <= 1">
+                <option [value]="null">Thread</option>
+                <option *ngFor="let item of filterThreads" [value]="item"
+                  [selected]="filterThreads && filterThreads.length <= 1">{{filterThreads.length <= 1 ? 'Thread : '
+                    +item :item}}</option>
+              </select>
+            </div>
+            <div class="mb-1 col-4">
+              <select class="form-select" aria-label="Logger" [(ngModel)]="filterObject.logger"
+                [disabled]="filterLoggers && filterLoggers.length <= 1">
+                <option [value]="null">Logger</option>
+                <option *ngFor="let item of filterLoggers" [value]="item"
+                  [selected]="filterLoggers && filterLoggers.length <= 1">{{filterLoggers.length <= 1 ? 'Logger : '
+                    +item :item}}</option>
+              </select>
+            </div>
+            <div class="mb-1 col-4 d-flex flex-nowrap justify-content-center">
+              <div class="col-2 d-flex justify-content-center align-items-center"><span>From</span> </div>
+              <input [(ngModel)]="filterObject.fromDate" type="datetime-local" class="form-control">
+            </div>
+            <div class="mb-1 col-4 d-flex flex-nowrap">
+              <div class="col-2 d-flex justify-content-center align-items-center"><span>To</span> </div>
+              <input [(ngModel)]="filterObject.toDate" type="datetime-local" class="form-control">
+            </div>
+            <div class="mb-1 col-4">
+              <select class="form-select" aria-label="Logger" [(ngModel)]="filterObject.file"
+                [disabled]="filterFiles && filterFiles.length <= 1">
+                <option [value]="null">File</option>
+                <option *ngFor="let item of filterFiles" [value]="item"
+                  [selected]="filterFiles && filterFiles.length <= 1">{{filterFiles.length <= 1 ? 'File : ' +item
+                    :item}}</option>
+              </select>
+            </div>
+            <div class="col-6 mx-auto d-flex justify-content-center mt-2">
+              <button type="submit" (click)="filterUsingObject()" class="btn btn-primary col-4 mx-1">Search</button>
+              <button type="submit" (click)="restUsingObject()" class="btn btn-outline-secondary col-2">Reset</button>
+            </div>
+
+          </div>
+        </div>
         <div id="content">
           <div class="row">
             <div class="col-6 ">
@@ -227,7 +301,7 @@
             <a class="text-decoration-none text-dark" data-bs-toggle="collapse" href="#exception{{e}}" role="button"
               aria-expanded="true" [attr.aria-controls]="'exception' +e">
               <div class="row p-2" title="{{'Found in file : ' +exception.logFile}}">
-                <div class="col-6 fw-bold">{{exception.exception.name}}</div>
+                <div class="col-6 fw-bold text-truncate">{{exception.exception.name}}</div>
                 <div class="col-1">{{exception.count}}</div>
                 <div class="col-2">{{exception.firstOccurence}}</div>
                 <div class="col-2">{{exception.lastOccurence}}</div>
@@ -276,44 +350,50 @@
                   </div>
                 </div>
               </div>
+              <div class="">
+                <div class="d-grid gap-2 mx-5">
+                  <button class="btn btn-outline-dark" type="button" data-bs-toggle="collapse"
+                    [attr.data-bs-target]="'#cb'+e" aria-expanded="false"
+                    [attr.aria-controls]="'cb'+e">stacktrace</button>
+                </div>
+                <div class="collapse p-3 mx-5 mt-1 caused-by overflow-scroll" id="cb{{e}}" style="max-height: 30vh;">
+                  <div class="p-2 text-wrap rounded shadow-lg">
+                    <div *ngFor="let cb of exception.exception.causedBy">
+                      <p> {{cb}}</p>
+                    </div>
+                  </div>
+                  <div>
+                    <p class="text-wrap text-truncate"> {{exception.exception.stackTrace}}</p>
+                  </div>
+                </div>
+              </div>
 
-              <div class="container  mt-3  bg-body rounded shadow-lg border border-2 rounded">
+              <div class="mx-2  mt-3  bg-body rounded shadow-lg border border-2 rounded">
                 <div class="row fw-bold">
-                  <div class="col-3 d-flex justify-content-center">Date</div>
+                  <div class="col-2 d-flex justify-content-center">File</div>
+                  <div class="col-2 d-flex justify-content-center">Date</div>
                   <div class="col-4 d-flex justify-content-center">Logger</div>
-                  <div class="col-4 d-flex justify-content-center">Thread</div>
+                  <div class="col-3 d-flex justify-content-center">Thread</div>
                   <div class="col-1 d-flex justify-content-center">Level</div>
                   <div></div>
                 </div>
               </div>
 
-              <div id="editor" class="container mt-1  bg-body rounded shadow border border-1 rounded">
-                <div *ngFor="let occurence of occurences(exception); let o = index" class="p-1 border-bottom">
-                  <a class="text-decoration-none text-dark" data-bs-toggle="collapse" href="#cb{{e}}-{{o}}"
-                    role="button" aria-expanded="false" [attr.aria-controls]="'cb'+e+'-'+o" title="{{'Found in file : ' +occurence.logFile}}">
+              <div id="editor" class="mx-2 mt-1  bg-body rounded shadow border border-1 rounded">
+                <div *ngFor="let occurence of occurences(exception)" class="p-1 border-bottom">
+                  <a class="text-decoration-none text-dark" title="{{'Found in file : ' +occurence.logFile}}">
                     <div class="row ">
-                      <div class="col-3 d-flex justify-content-center">{{occurence.date}}</div>
-                      <div class="col-4 d-flex justify-content-center">{{occurence.logger}}</div>
-                      <div class="col-4 d-flex justify-content-center">{{occurence.thread}}</div>
-                      <div class="col-1 d-flex justify-content-center">
+                      <div class="col-2 d-flex justify-content-center text-truncate">{{exception.logFile}}</div>
+                      <div class="col-2 d-flex justify-content-center text-truncate">{{occurence.date}}</div>
+                      <div class="col-4 d-flex justify-content-center text-truncate">{{occurence.logger}}</div>
+                      <div class="col-3 d-flex justify-content-center text-truncate">{{occurence.thread}}</div>
+                      <div class="col-1 d-flex justify-content-center text-truncate">
                         <div level-color [level]='occurence.level' class="rounded px-2 fw-bold">
                           {{occurence.level}}
                         </div>
                       </div>
                     </div>
                   </a>
-                  <div class="collapse container p-3 " id="cb{{e}}-{{o}}">
-                    <div class="container p-2 caused-by">
-                      <div *ngFor="let cb of occurence.causedBy">
-                        <p> {{cb}}</p>
-                      </div>
-                      <a data-bs-toggle="collapse" href="#seemore{{e}}-{{o}}" role="button" aria-expanded="false"
-                        [attr.aria-controls]="'cb'+e+'-'+o">show more...</a>
-                    </div>
-                    <div class="collapse container p-2 caused-by" id="seemore{{e}}-{{o}}">
-                      {{occurence.stackTrace}}
-                    </div>
-                  </div>
                 </div>
               </div>
             </div>

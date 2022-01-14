@@ -45,7 +45,7 @@ export class AppComponent implements OnInit {
   file: any;
   files: FileList;
   fileNb: number = 0;
-
+  showFilter: boolean = false;
 
   constructor(private advisor: AdvisorServiceService) { }
 
@@ -209,6 +209,7 @@ export class AppComponent implements OnInit {
         reader.readAsBinaryString(this.file)
         reader.onload = (event) => {
           this.log.bytes = event.target.result;
+          this.log.name = this.file.name;
           this.type(this.uploading);
           this.analyse(null);
         }
@@ -235,7 +236,7 @@ export class AppComponent implements OnInit {
         reader.onload = (event) => {
           this.log.bytes = event.target.result;
           this.log.name = element.name;
-          this.currentFile = this.log.name;
+          this.currentFile = element.name;
           this.exceptions = [];
           this.db = [];
           this.analyse(element.name);
@@ -250,6 +251,7 @@ export class AppComponent implements OnInit {
         if (!fileName) {
           this.exceptions = [];
           this.db = [];
+          fileName = this.log.name;
         }
         e.forEach(ex => {
           var exe = this.prepare(ex, fileName);
@@ -278,12 +280,13 @@ export class AppComponent implements OnInit {
         })
         this.fileNb--;
         if (this.fileNb <= 0) {
-          var fileNames: string = '';
-          for (var i = 0; i < this.files.length; i++) {
-            var element = this.files.item(i);
-            fileNames = fileNames + '_' + element.name;
+          var fileNames: string = this.log.name;
+          if (this.files) {
+            for (var i = 0; i < this.files.length; i++) {
+              var element = this.files.item(i);
+              fileNames = fileNames + '_' + element.name;
+            }
           }
-          this.uploading = null;
           var saved: string = window.localStorage.getItem('savedReports');
           var savedItems: { date: string, data: Exception[], lineData: any, fileName: string }[];
           if (saved != null) {
@@ -300,7 +303,12 @@ export class AppComponent implements OnInit {
             lineData: this.lineData,
             fileName: fileNames
           })
-          window.localStorage.setItem('savedReports', JSON.stringify(savedItems))
+          try {
+            window.localStorage.setItem('savedReports', JSON.stringify(savedItems))
+          } catch (Error) {
+            console.log(Error)
+          }
+          this.uploading = null;
           this.log = null;
           this.file = null;
           this.files = null;
@@ -369,6 +377,7 @@ export class AppComponent implements OnInit {
 
 
   prepare(ex: Exception, fileName: string) {
+    console.log(fileName)
     ex.logFile = fileName;
     ex.count = 1;
     ex.lastOccurence = ex.exception.date;
@@ -564,6 +573,138 @@ export class AppComponent implements OnInit {
     }, 1000);
   }
 
+  filterNames: string[];
+  filterThreads: string[];
+  filterLevels: string[];
+  filterLoggers: string[];
+  filterFiles: string[];
+  filterObject: { name: string, level: string, thread: string, logger: string, file: string, fromDate: Date, toDate: Date } = {
+    name: null,
+    level: null,
+    thread: null,
+    logger: null,
+    file: null,
+    fromDate: null,
+    toDate: null
+  }
+  initFilter() {
+    if (!this.filterNames) {
+      const names = [];
+      const threads = [];
+      const loggers = [];
+      const levels = [];
+      const files = [];
+      this.db.forEach(exception => {
+        let ch = exception;
+        while (ch != null) {
+          names.push(ch.exception.name)
+          files.push(ch.logFile)
+          levels.push(ch.exception.level)
+          threads.push(ch.exception.thread)
+          loggers.push(ch.exception.logger)
+          ch = ch.child;
+        }
+      })
 
+      this.filterNames = Array.from(new Set(names));
+      this.filterFiles = Array.from(new Set(files));
+      this.filterThreads = Array.from(new Set(threads));
+      this.filterLevels = Array.from(new Set(levels));
+      this.filterLoggers = Array.from(new Set(loggers));
+    }
 
+  }
+
+  filterUsingObject() {
+    let name = this.filterObject.name;
+    let file = this.filterObject.file;
+    let thread = this.filterObject.thread;
+    let level = this.filterObject.level;
+    let logger = this.filterObject.logger;
+    let fromDate = this.filterObject.fromDate;
+    let toDate = this.filterObject.toDate;
+    if ((file && file != 'null') || (name && name != 'null') || (thread && thread != 'null') || (level && level != 'null') || (logger && logger != 'null') || fromDate || toDate) {
+      var tempLineData = [];
+      this.exceptions = this.db.map(e => {
+
+        let childs = [];
+        let ch = e;
+        while (ch != null) {
+          if (file && file != ch.logFile) {
+            ch = ch.child;
+            continue;
+          }
+          if (name && name != ch.exception.name) {
+            ch = ch.child;
+            continue;
+          }
+          if (thread && thread != ch.exception.thread) {
+            ch = ch.child;
+            continue;
+          }
+          if (level && level != ch.exception.level) {
+            ch = ch.child;
+            continue;
+          }
+          if (logger && logger != ch.exception.logger) {
+            ch = ch.child;
+            continue;
+          }
+          if (fromDate && new Date(fromDate).getTime() > new Date(ch.exception.date).getTime()) {
+            ch = ch.child;
+            continue;
+          }
+          if (toDate && new Date(toDate).getTime() < new Date(ch.exception.date).getTime()) {
+            ch = ch.child;
+            continue;
+          }
+          ch.todo = e.todo;
+          ch.hint = e.hint;
+          tempLineData.push(ch.exception.date);
+          childs.push(ch);
+          ch = ch.child;
+        }
+        for (var i = 1; i < childs.length; ++i) {
+          childs[i - 1].child = childs[i];
+        }
+        return childs[0];
+      }
+      ).filter(e => e)
+      this.line.lineData = tempLineData;
+      this.line.ngOnInit();
+      this.line.chart.update();
+      this.pie.exceptions = this.exceptions;
+      this.pie.ngOnInit();
+      this.pie.chart.update();
+    } else {
+      this.exceptions = this.db;
+      this.line.lineData = this.lineData;
+      this.line.ngOnInit();
+      this.line.chart.update();
+      this.pie.exceptions = this.exceptions;
+      this.pie.ngOnInit();
+      this.pie.chart.update();
+    }
+  }
+
+  restUsingObject() {
+
+    this.filterObject = {
+      name: null,
+      level: null,
+      thread: null,
+      logger: null,
+      file: null,
+      fromDate: null,
+      toDate: null
+    };
+
+    this.exceptions = this.db;
+    this.line.lineData = this.lineData;
+    this.line.ngOnInit();
+    this.line.chart.update();
+    this.pie.exceptions = this.exceptions;
+    this.pie.ngOnInit();
+    this.pie.chart.update();
+  }
 }
