@@ -1,17 +1,24 @@
-<nav class="navbar navbar-dark bg-primary">
-  <a href="" class="mx-3 px-3" style="text-decoration: none;color: #f7f7f7ee;">
+<nav class="navbar navbar-dark bg-primary fixed-top" id="nav" style="transition:height 1s ease-in-out;">
+  <div class="ribbon-wrapper-green" id="ribbon">
+    <div class="ribbon-green" id="ribbon-green">Alpha version</div>
+  </div>
+  <a href="" class="mx-3 px-3" id="nav-card" style="text-decoration: none;color: #f7f7f7ee;">
     <div class="px-5">
-      <p class="h1 lh-1 my-0">ADVISOR</p>
+      <p class="h1 lh-1 my-0" id="ADVISOR">ADVISOR</p>
     </div>
-    <div class="d-flex flex-wrap justify-content-end">
-      <small class="fw-lighter lh-1">by</small>
-      <img src="assets\img\palmyraLogo.png" alt="advisor logo" style="max-height: 3vh;">
+    <div class="d-flex flex-wrap justify-content-end" id="logo">
+      <small class="fw-lighter lh-1" id="by">by</small>
+      <img src="assets\img\palmyraLogo.png" alt="advisor logo" id="palmyra-logo" style="max-height: 3vh;">
+      <input type="text" class="form-control" id="search"
+        style="display:none; font-size: 1rem; max-width: 40vw; margin: 0rem auto;padding: 0rem auto; margin-right: 30vw; "
+        placeholder="earch everywhere" aria-label="Search" [(ngModel)]="search" (keyup)="updateList() "
+        aria-describedby="basic-addon1" [disabled]="downloading">
     </div>
   </a>
 </nav>
 
-<div class="container container-fluid">
-  <div class="my-3">
+<div class="container container-fluid" style="margin: 6rem auto">
+  <div>
     <main>
       <div *ngIf="!this.db && !this.uploading">
         <div class="jumbotron">
@@ -20,38 +27,53 @@
           <hr class="my-4">
           <p>Our aim is to collect more user requirements.</p>
         </div>
-        <div class="rounded shadow-lg body-bg p-5 mt-5" style="margin-right: 15rem; margin-left: 15rem;">
-          <div class="input-group">
-            <input (change)="fileChange($event)" type="file" class="form-control" id="inputGroupFile04"
-              aria-describedby="inputGroupFileAddon04" aria-label="Upload" multiple>
-            <button (click)="analyseFile()" class="btn btn-primary" type="button" id="inputGroupFileAddon04"
-              [disabled]="!file && !files">
-              <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="currentColor"
-                class="bi bi-cloud-arrow-up" viewBox="0 0 19 19">
-                <path fill-rule="evenodd"
-                  d="M7.646 5.146a.5.5 0 0 1 .708 0l2 2a.5.5 0 0 1-.708.708L8.5 6.707V10.5a.5.5 0 0 1-1 0V6.707L6.354 7.854a.5.5 0 1 1-.708-.708l2-2z" />
-                <path
-                  d="M4.406 3.342A5.53 5.53 0 0 1 8 2c2.69 0 4.923 2 5.166 4.579C14.758 6.804 16 8.137 16 9.773 16 11.569 14.502 13 12.687 13H3.781C1.708 13 0 11.366 0 9.318c0-1.763 1.266-3.223 2.942-3.593.143-.863.698-1.723 1.464-2.383zm.653.757c-.757.653-1.153 1.44-1.153 2.056v.448l-.445.049C2.064 6.805 1 7.952 1 9.318 1 10.785 2.23 12 3.781 12h8.906C13.98 12 15 10.988 15 9.773c0-1.216-1.02-2.228-2.313-2.228h-.5v-.5C12.188 4.825 10.328 3 8 3a4.53 4.53 0 0 0-2.941 1.1z" />
-              </svg>
-              Analyse</button>
+        <div class="w-100 d-flex flex-column justify-content-center align-items-center ">
+          <div class="btn-group w-25 mt-5">
+            <button (click)="useJira=false" [ngClass]="useJira ? 'btn-outline-primary' : 'btn-primary'" class="btn w-50"
+              for="btnradio1">Upload files</button>
+            <button (click)="useJira=true" [ngClass]="useJira ? 'btn-primary' : 'btn-outline-primary'" class="btn w-50"
+              for="btnradio2">Analyse jira ticket</button>
           </div>
-          <div style="margin-top: 3vh;">
-            <span class="badge bg-secondary mb-1">Limit your search </span>
+          <div class="rounded shadow-lg body-bg p-5 w-75">
             <div class="input-group">
-              <span class="input-group-text" style="width: 140px;">From date </span>
-              <input [(ngModel)]="fromDate" type="date" class="form-control">
-              <input [(ngModel)]="fromTime" type="time" class="form-control">
+              <input *ngIf="useJira" [(ngModel)]="jiraId" type="text" class="form-control"
+                placeholder="Jira Key (example : HHH-5035)" aria-describedby="Jira Key">
+              <input *ngIf="!useJira" (change)="fileChange($event)" type="file" class="form-control"
+                id="inputGroupFile04" aria-describedby="inputGroupFileAddon04" aria-label="Upload" multiple>
+              <button *ngIf="!useJira" (click)="analyseFile()" class="btn btn-outline-primary w-25 fs-6" type="button"
+                id="inputGroupFileAddon04" [disabled]="!file && !files && !jiraId">
+                Analyse
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor"
+                  class="bi bi-cloud-arrow-up ms-2 my-0" viewBox="0 0 19 19">
+                  <path fill-rule="evenodd"
+                    d="M7.646 5.146a.5.5 0 0 1 .708 0l2 2a.5.5 0 0 1-.708.708L8.5 6.707V10.5a.5.5 0 0 1-1 0V6.707L6.354 7.854a.5.5 0 1 1-.708-.708l2-2z" />
+                  <path
+                    d="M4.406 3.342A5.53 5.53 0 0 1 8 2c2.69 0 4.923 2 5.166 4.579C14.758 6.804 16 8.137 16 9.773 16 11.569 14.502 13 12.687 13H3.781C1.708 13 0 11.366 0 9.318c0-1.763 1.266-3.223 2.942-3.593.143-.863.698-1.723 1.464-2.383zm.653.757c-.757.653-1.153 1.44-1.153 2.056v.448l-.445.049C2.064 6.805 1 7.952 1 9.318 1 10.785 2.23 12 3.781 12h8.906C13.98 12 15 10.988 15 9.773c0-1.216-1.02-2.228-2.313-2.228h-.5v-.5C12.188 4.825 10.328 3 8 3a4.53 4.53 0 0 0-2.941 1.1z" />
+                </svg>
+              </button>
+              <button *ngIf="useJira" (click)="analyseFile()" class="btn btn-outline-primary w-25 fs-6" type="button"
+                id="inputGroupFileAddon04" [disabled]="!file && !files && !jiraId"> Analyse
+                <img src="assets\img\jira.png" class="my-0" alt="jira logo" width="30px" height="20px">
+              </button>
             </div>
-            <div class="input-group">
-              <span class="input-group-text" style="width: 140px;">To date </span>
-              <input [(ngModel)]="toDate" type="date" class="form-control">
-              <input [(ngModel)]="toTime" type="time" class="form-control">
+            <div style="margin-top: 3vh;">
+              <span class="badge bg-secondary mb-1">Limit your search </span>
+              <div class="input-group">
+                <span class="input-group-text" style="width: 140px;">From date </span>
+                <input [(ngModel)]="fromDate" type="date" class="form-control">
+                <input [(ngModel)]="fromTime" type="time" class="form-control">
+              </div>
+              <div class="input-group">
+                <span class="input-group-text" style="width: 140px;">To date </span>
+                <input [(ngModel)]="toDate" type="date" class="form-control">
+                <input [(ngModel)]="toTime" type="time" class="form-control">
+              </div>
             </div>
-          </div>
-          <div style="margin-top: 2vh;">
-            <div class="input-group">
-              <span class="input-group-text" style="width: 140px;">Contains text </span>
-              <input [(ngModel)]="exceptionNameFilter" type="text" class="form-control">
+            <div style="margin-top: 2vh;">
+              <div class="input-group">
+                <span class="input-group-text" style="width: 140px;">Contains text </span>
+                <input [(ngModel)]="exceptionNameFilter" type="text" class="form-control">
+              </div>
             </div>
           </div>
         </div>
@@ -62,28 +84,86 @@
           <div class="list-group">
             <a *ngFor="let savedReport of savedReports" (click)="loadSavedReport(savedReport)" href="#"
               class="list-group-item list-group-item-action">
-              <div class="d-flex justify-content-between">
-                <p>{{savedReport.fileName}}</p>
-                <p class="badge bg-primary"> {{savedReport.date|date:'yyyy-MM-dd HH:mm:ss'}}</p>
+              <div class="d-flex justify-content-between p-0">
+                <p class="text-truncate m-0">{{savedReport.fileName}}</p>
+                <span
+                  class="badge bg-primary position-relative p-auto d-flex align-items-center justify-content-center">
+                  <p class="my-1"> {{savedReport.date|date:'yyyy-MM-dd HH:mm:ss'}} </p>
+                  <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                    {{savedReport.data.length}}
+                    <span class="visually-hidden">exceptions found</span>
+                  </span>
+                </span>
               </div>
-              <small> {{savedReport.data.length}} exceptions found.</small>
             </a>
           </div>
         </div>
-
-
-
       </div>
-      <div class="" *ngIf="this.uploading">
-        <div class="container-fluid p-5">
-          <div class="shadow-lg rounded console-body p-2" style="height: 80vh;">
-            <div id="screen" class="container">
-              <b id="prompt" class="idle">&marker;</b>
+      <div class="container" *ngIf="this.uploading" style="width: 50vw;">
+        <div *ngIf="!this.log" class="card text-white w-100"
+          [ngClass]="this.db.length > 0 ? 'border-danger' : 'border-success'">
+          <div class="card-header text-black">Advisor</div>
+          <div class="card-body d-flex justify-content-between">
+            <div>
+              <h5 class="card-title" [ngClass]="this.db.length > 0 ? 'text-danger' : 'text-success'">Result is ready
+              </h5>
+              <p class="card-text" [ngClass]="this.db.length > 0 ? 'text-danger' : 'text-success'">
+                {{this.db.length > 0 ?
+                (this.db.length > 1 ? 'Multiple exceptions founds' :'One exception found')
+                : 'Great you don\'t have any exceptions'}}
+              </p>
+            </div>
+            <div class="w-25 h-75">
+              <button *ngIf="this.db.length >0" class="btn btn-danger w-100 h-100 fw-bold" type="button"
+                (click)="log = null; folderFiles = null; uploading = null">Show result</button>
+              <a *ngIf="this.db.length ==0" class="btn btn-success w-100 h-100 fw-bold" href="/"
+                type="button">cancel</a>
             </div>
           </div>
         </div>
+        <div *ngIf="this.log" class="w-100 d-flex justify-content-center align-items-center ">
+          <div class="spinner-grow text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+          <div class="spinner-grow text-secondary" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+          <div class="spinner-grow text-success" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+          <div class="spinner-grow text-danger" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+          <div class="spinner-grow text-warning" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+          <div class="spinner-grow text-info" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+          <div class="spinner-grow text-success" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+          <div class="spinner-grow text-dark" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+        </div>
+        <div class="p-5" style="font-size: 15px;">
+          <ul *ngIf="folderFiles" class="list-group">
+            <li *ngFor="let item of folderFiles" class="list-group-item py-1 px-2">
+              <div class="d-flex justify-content-between align-items-center">
+                {{item.fileName}}
+                <span *ngIf="item.count != null" class="badge badge-pill"
+                  [ngClass]="item.count > 0 ? 'bg-danger' : 'bg-success'"> found {{item.count}} exceptions in
+                  {{item.time}} seconds</span>
+                <span *ngIf="item.count == null" class="badge bg-primary badge-pill">scanning</span>
+              </div>
+            </li>
+          </ul>
+        </div>
+
+        <div></div>
       </div>
-      <div class="" *ngIf="db && db.length == 0 && !log">
+      <div class="" *ngIf="db && db.length == 0 && !log && !this.uploading">
         <div class="row">
           <div class="col-md-12">
             <div class="error-template">
@@ -113,12 +193,12 @@
           </div>
         </div>
       </div>
-      <div *ngIf="db && db.length > 0 && !log">
-        <div class="row d-flex flex-md-nowrap my-3">
-          <div class="input-group">
+      <div *ngIf="db && db.length > 0 && !log && !this.uploading">
+        <div class="row d-flex flex-md-nowrap mt-3">
+          <div class="input-group d-flex">
             <span class="input-group-text" id="basic-addon1">
-              <a (click)="initFilter()" data-bs-toggle="collapse" href="#collapseExample" role="button"
-                aria-expanded="false" aria-controls="collapseExample">
+              <a (click)="initFilter(); showFilter = !showFilter" data-bs-toggle="collapse" href="#filter" role="button"
+                aria-expanded="false" aria-controls="filter">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
                   <path fill-rule="evenodd"
                     d="M7.72.22a.75.75 0 011.06 0l1.204 1.203A4.983 4.983 0 0112 1c.717 0 1.4.151 2.016.423L15.22.22a.75.75 0 011.06 1.06l-.971.972A4.988 4.988 0 0117 6v1.104a2.755 2.755 0 011.917 1.974l1.998-.999a.75.75 0 01.67 1.342L19 10.714V13.5l3.25.003a.75.75 0 110 1.5L19 15.001V16a7.02 7.02 0 01-.204 1.686.833.833 0 01.04.018l2.75 1.375a.75.75 0 11-.671 1.342l-2.638-1.319A7 7 0 0112 23a7 7 0 01-6.197-3.742l-2.758 1.181a.75.75 0 11-.59-1.378l2.795-1.199A7.007 7.007 0 015 16v-.996H1.75a.75.75 0 010-1.5H5v-2.79L2.415 9.42a.75.75 0 01.67-1.342l1.998.999A2.755 2.755 0 017 7.104V6a4.99 4.99 0 011.69-3.748l-.97-.972a.75.75 0 010-1.06zM8.5 7h7V6a3.5 3.5 0 10-7 0v1zm-2 3.266V9.75c0-.69.56-1.25 1.25-1.25h8.5c.69 0 1.25.56 1.25 1.25V16a5.5 5.5 0 01-11 0v-5.734z">
@@ -126,9 +206,11 @@
                 </svg>
               </a>
             </span>
-            <input type="text" class="form-control"
-              placeholder="Search everything or click the debug button for advanced search" aria-label="Search"
-              [(ngModel)]="search" (keyup)="updateList() " aria-describedby="basic-addon1" [disabled]="downloading">
+            <div class="flex-grow-1">
+              <input type="text" class="form-control"
+                placeholder="Search everything or click the debug button for advanced search" aria-label="Search"
+                [(ngModel)]="search" (keyup)="updateList() " aria-describedby="basic-addon1" [disabled]="downloading">
+            </div>
             <div class="dropend">
               <button class="btn btn-primary pulse" id="dropdownMenu2" data-bs-toggle="dropdown" aria-expanded="false"
                 type="button" [disabled]="downloading">
@@ -216,7 +298,7 @@
             </div>
           </div>
         </div>
-        <div class="collapse mx-3" id="collapseExample">
+        <div class="collapse mx-3 mt-3" id="filter">
           <div class="rounded p-3 shadow-lg row d-flex flex-wrap">
             <p class="h4">Filter result</p>
             <div class="mb-1 col-4">
@@ -255,6 +337,24 @@
                     +item :item}}</option>
               </select>
             </div>
+            <div *ngIf="appName" class="mb-1 col-4">
+              <select class="form-select" aria-label="User" [(ngModel)]="filterObject.user"
+                [disabled]="filterUsers && filterUsers.length <= 1">
+                <option [value]="null">User</option>
+                <option *ngFor="let item of filterUsers" [value]="item"
+                  [selected]="filterUsers && filterUsers.length <= 1">{{filterUsers.length <= 1 ? 'User : ' +item
+                    :item}}</option>
+              </select>
+            </div>
+            <div *ngIf="appName" class="mb-1 col-4">
+              <select class="form-select" aria-label="Tenant" [(ngModel)]="filterObject.tenant"
+                [disabled]="filterTenants && filterTenants.length <= 1">
+                <option [value]="null">Tenant</option>
+                <option *ngFor="let item of filterTenants" [value]="item"
+                  [selected]="filterTenants && filterTenants.length <= 1">{{filterTenants.length <= 1 ? 'Tenant : '
+                    +item :item}}</option>
+              </select>
+            </div>
             <div class="mb-1 col-4 d-flex flex-nowrap justify-content-center">
               <div class="col-2 d-flex justify-content-center align-items-center"><span>From</span> </div>
               <input [(ngModel)]="filterObject.fromDate" type="datetime-local" class="form-control">
@@ -279,19 +379,79 @@
 
           </div>
         </div>
-        <div id="content">
-          <div class="row">
+        <div *ngIf="appName" class="row mt-3">
+          <div class="alert alert-primary alert-dismissible fade show" role="alert">
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+
+            <div class="d-flex justify-content-between align-items-center">
+              <div class="d-flex justify-content-start align-items-center">
+                <span class="mx-3"> Application name :</span>
+                <h2 class="alert-heading"><b>{{appName}}</b></h2>
+              </div>
+              <img src="assets\img\palmyraLogo.png" alt="advisor logo" style="max-height: 7vh">
+            </div>
+            <hr>
+            <div class="d-flex">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor"
+                class="bi bi-exclamation-triangle-fill flex-shrink-0 me-2" viewBox="0 0 16 16" role="img"
+                aria-label="Warning:">
+                <path
+                  d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z" />
+              </svg>
+              <p class="mb-0"> This log seems to belong to a <b>Palmyra application!</b> Logs written by Palmyra apps
+                get additional love (Transactions, users,
+                tenants and more features are activated)</p>
+            </div>
+
+          </div>
+        </div>
+        <div id="content" class="mt-3">
+          <div id="sideNav">
+            <button class="btn btn-dark showCharts" type="button" (click)="showCharts = !showCharts"
+              data-bs-toggle="collapse" data-bs-target="#charts" aria-expanded="true" aria-controls="charts">
+              {{showCharts ? 'Hide charts' : 'Show sharts'}}
+            </button>
+            <button class="btn btn-dark showFilter" type="button" (click)="showFilter = !showFilter"
+              data-bs-toggle="collapse" data-bs-target="#filter" aria-expanded="true" aria-controls="filter">
+              {{showFilter ? 'Hide filter' : 'Show filter'}}
+            </button>
+            <button class="btn btn-dark collapseAll" type="button" (click)="collapseAll()">
+              Collapse All
+            </button>
+            <button class="btn btn-dark expandAll" type="button" (click)="expandAll()">
+              Expand All
+            </button>
+          </div>
+
+
+          <div class="row collapse show" id="charts">
             <div class="col-6 ">
-              <app-line-chart line [lineData]="lineData"></app-line-chart>
-              <app-bubble-chart bubble [exception]="bubEx"></app-bubble-chart>
+              <app-line-chart #line [lineData]="lineData"></app-line-chart>
+              <app-line-chart #selectionLine [lineData]="selectionLineData"></app-line-chart>
             </div>
             <app-pie-chart pie class="col-6 chart bg-body rounded shadow-lg p-2 my-2" (ex)="updateBubbleChart($event)"
               [exceptions]="exceptions">
             </app-pie-chart>
           </div>
+
+          <div *ngIf="currentTransactionalSearch" class="alert alert-warning alert-dismissible fade show my-3"
+            role="alert">
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"
+              (click)="restUsingObject(); currentTransactionalSearch = null"></button>
+            <h4>Transaction : <b>{{currentTransactionalSearch}}</b></h4>
+            <div class="d-flex">
+              <svg class="bi flex-shrink-0 me-1" width="30" height="30" role="img" aria-label="Warning:">
+                <use xlink:href="#exclamation-triangle-fill" />
+              </svg>
+              <p> You are using Advisor's Experimental Transaction Boundaries features. </p>
+            </div>
+            <span class="badge bg-light text-dark">Closing this warning will reset your search.</span>
+          </div>
+
+
           <div class="p-2 mt-3 ">
             <div class="row fw-bold shadow-lg border border-2 bg-body rounded">
-              <div (click)="sortByName()" class="col-6 ">Name</div>
+              <div (click)="sortByName()" class="col-6 ">Exception</div>
               <div (click)="sortByCount()" class="col-1">Count</div>
               <div (click)="sortByFirstOccurence()" class="col-2">First occurence</div>
               <div (click)="sortByLastOccurence()" class="col-2">Last occurence</div>
@@ -338,7 +498,7 @@
                     <use xlink:href="#info-fill" />
                   </svg>
                   <div>
-                    {{exception.hint}}
+                    <p class="my-1" *ngFor="let item of exception.hint.split('/n')">{{item}}</p>
                   </div>
                 </div>
                 <div class="alert alert-success d-flex align-items-center fw-bold" role="alert">
@@ -346,7 +506,7 @@
                     <use xlink:href="#check-circle-fill" />
                   </svg>
                   <div>
-                    {{exception.todo}}
+                    <p class="my-1" *ngFor="let item of exception.todo.split('/n')">{{item}}</p>
                   </div>
                 </div>
               </div>
@@ -356,7 +516,7 @@
                     [attr.data-bs-target]="'#cb'+e" aria-expanded="false"
                     [attr.aria-controls]="'cb'+e">stacktrace</button>
                 </div>
-                <div class="collapse p-3 mx-5 mt-1 caused-by overflow-scroll" id="cb{{e}}" style="max-height: 30vh;">
+                <div class="collapse p-3 mx-5 mt-1 caused-by overflow-scroll" id="cb{{e}}" style="max-height: 60vh;">
                   <div class="p-2 text-wrap rounded shadow-lg">
                     <div *ngFor="let cb of exception.exception.causedBy">
                       <p> {{cb}}</p>
@@ -368,29 +528,67 @@
                 </div>
               </div>
 
-              <div class="mx-2  mt-3  bg-body rounded shadow-lg border border-2 rounded">
+              <div class="mt-3 mx-2 bg-body rounded shadow-lg border border-2 rounded">
                 <div class="row fw-bold">
                   <div class="col-2 d-flex justify-content-center">File</div>
                   <div class="col-2 d-flex justify-content-center">Date</div>
-                  <div class="col-4 d-flex justify-content-center">Logger</div>
-                  <div class="col-3 d-flex justify-content-center">Thread</div>
+                  <div class="d-flex justify-content-center"
+                    [ngClass]="exception.exception.framework=='Palmyra' ? 'col-2' : 'col-4'">Logger</div>
+                  <div class="d-flex justify-content-center"
+                    [ngClass]="exception.exception.framework=='Palmyra' ? 'col-2' : 'col-3'">Thread</div>
                   <div class="col-1 d-flex justify-content-center">Level</div>
+                  <div *ngIf="exception.exception.framework=='Palmyra'" class="col-1 d-flex justify-content-center">User
+                  </div>
+                  <div *ngIf="exception.exception.framework=='Palmyra'" class="col-1 d-flex justify-content-center">
+                    Tenant</div>
+                  <div *ngIf="exception.exception.framework=='Palmyra'" class="col-1 mx-0 px-0">Transaction</div>
                   <div></div>
                 </div>
               </div>
 
-              <div id="editor" class="mx-2 mt-1  bg-body rounded shadow border border-1 rounded">
+              <div id="editor" class="mt-1 mx-2 bg-body rounded shadow border border-1 rounded">
                 <div *ngFor="let occurence of occurences(exception)" class="p-1 border-bottom">
-                  <a class="text-decoration-none text-dark" title="{{'Found in file : ' +occurence.logFile}}">
+                  <a class="text-decoration-none text-dark">
                     <div class="row ">
-                      <div class="col-2 d-flex justify-content-center text-truncate">{{exception.logFile}}</div>
-                      <div class="col-2 d-flex justify-content-center text-truncate">{{occurence.date}}</div>
-                      <div class="col-4 d-flex justify-content-center text-truncate">{{occurence.logger}}</div>
-                      <div class="col-3 d-flex justify-content-center text-truncate">{{occurence.thread}}</div>
-                      <div class="col-1 d-flex justify-content-center text-truncate">
-                        <div level-color [level]='occurence.level' class="rounded px-2 fw-bold">
-                          {{occurence.level}}
+                      <div class="col-2 d-flex justify-content-center py-0" title="{{'File : ' +occurence.logFile}}">
+                        <p class="text-truncate my-0 ">{{exception.logFile}}</p>
+                      </div>
+                      <div class="col-2 d-flex justify-content-center py-0" title="{{'Date : ' +occurence.date}}">
+                        <p class="text-truncate my-0 ">{{occurence.date}}</p>
+                      </div>
+                      <div class="d-flex justify-content-center py-0"
+                        [ngClass]="occurence.framework=='Palmyra' ? 'col-2' : 'col-4'"
+                        title="{{'Logger : ' +occurence.logger}}">
+                        <p class="text-truncate my-0 ">{{occurence.logger}}</p>
+                      </div>
+                      <div class="d-flex justify-content-center py-0"
+                        [ngClass]="occurence.framework=='Palmyra' ? 'col-2' : 'col-3'"
+                        title="{{'Thread : ' +occurence.thread}}">
+                        <p class="text-truncate my-0 ">{{occurence.thread}}</p>
+                      </div>
+                      <div class="col-1 d-flex justify-content-center py-0">
+                        <div level-color [level]='occurence.level' class="rounded px-2 fw-bold"
+                          title="{{'Level : ' +occurence.level}}">
+                          <p class="text-truncate my-0 "> {{occurence.level}}</p>
                         </div>
+                      </div>
+                      <div *ngIf="occurence.framework=='Palmyra'" class="col-1 d-flex justify-content-center py-0"
+                        title="{{'User : ' +occurence.user}}">
+                        <p class="my-0 ">{{occurence.user}}</p>
+                      </div>
+                      <div *ngIf="occurence.framework=='Palmyra'" class="col-1 d-flex justify-content-center py-0"
+                        title="{{'Tenant : ' +occurence.tenant}}">
+                        <p class="my-0 ">{{occurence.tenant}}</p>
+                      </div>
+                      <div *ngIf="occurence.framework=='Palmyra'"
+                        class="col-1 d-flex justify-content-center py-0 mx-0 px-0"
+                        title="{{'Transaction : ' +occurence.transaction}}">
+                        <svg width="64" height="30" viewBox="0 0 1040 1024" version="1.1" style="margin: 0;"
+                          [ngStyle]="{'cursor' : occurence.transaction != null? 'pointer' : 'none' }"
+                          (click)="transactionalSearch(occurence.transaction)" xmlns="http://www.w3.org/2000/svg">
+                          <path
+                            d="M174.107004 756.14277C204.0436 746.051721 233.701274 734.997906 264.023319 726.254403 281.066052 721.354604 297.998191 725.759921 313.373894 735.567705 344.665258 755.511567 376.973101 773.556909 411.949006 786.254635 441.967733 797.159452 470.45198 794.430792 497.123637 776.355977 500.476399 774.079228 503.353448 771.05175 507.059945 767.843342 491.980242 759.422401 477.651921 751.727629 463.636675 743.477792 446.762271 733.552117 429.887055 723.600244 413.50788 712.899278 383.559086 693.288618 371.924847 659.459946 383.441988 627.301381 394.167899 597.312317 426.557875 575.642679 455.112868 580.303423 464.600299 581.8802 474.038938 585.175387 482.927865 589.060024 505.748278 599.020082 528.20601 609.773444 550.834512 620.184596 572.736027 630.265002 590.127616 627.015661 607.333798 609.737422 651.326299 565.534436 695.279766 521.300343 739.31943 477.118645 752.615819 463.765157 753.417621 443.985851 740.993779 431.166141 728.367454 418.146674 708.720089 418.822903 694.844711 432.653682 680.636742 446.845498 666.464552 461.091347 651.961396 474.977797 649.07215 477.792418 645.946266 483.945615 640.880936 479.279959 639.809972 478.258247 642.489416 471.222511 645.046883 468.419351 658.346526 453.679021 672.10643 439.373407 685.815918 425.012123 702.230871 407.835401 698.80899 382.139494 678.725756 372.362818 665.970135 366.137577 651.728012 369.520361 640.611771 380.72809 623.145368 398.259302 605.481363 415.641513 587.780762 432.922208 585.50303 435.158024 582.364951 436.571065 578.779616 438.935413 577.233753 430.962289 581.59893 427.213555 584.963077 423.514758 598.060235 409.223062 611.430625 395.1958 624.789628 381.153803 630.804759 374.867977 634.936553 367.869084 635.174003 358.877521 635.504969 345.312815 628.446523 333.860302 616.434965 328.678876 604.209541 323.404939 590.803371 326.446335 581.268776 336.355637 566.154105 351.93839 550.906883 367.431908 535.664542 382.909052 533.207911 385.382283 530.626861 387.852241 527.697769 389.672985 526.082784 390.689786 523.672502 390.34676 521.61921 390.61938 521.642792 388.496543 521.020706 386.021672 521.858286 384.300809 523.165075 381.627 525.32652 379.30113 527.401768 377.0997 539.249062 364.556705 551.475301 352.306797 563.097342 339.502644 573.306067 328.309651 573.882615 311.842725 565.28237 300.035723 554.636964 285.437023 533.939777 282.763214 520.276641 294.701204 514.163928 300.073382 508.724533 306.262602 503.285138 312.357674 502.175954 313.602067 502.031207 316.171084 502.210921 318.019664 505.477485 352.378842 488.179413 381.184914 456.81649 394.075029 454.289925 395.082005 451.727577 398.01861 450.807866 400.670314 443.456673 421.76524 429.912262 436.770005 409.331361 445.489765 406.808047 446.571241 404.281481 449.460363 403.269065 452.058852 395.738158 471.730093 382.594647 485.595256 363.240029 493.746034 360.670364 494.827509 357.882767 497.570088 356.963867 500.175127 343.686995 537.438982 306.485402 553.666855 269.075636 544.698215 242.81057 538.414847 224.589533 522.316326 214.185642 497.225422 213.923796 496.589309 213.582259 495.979392 213.215512 495.373569 212.965864 494.992883 212.624327 494.65968 211.965646 493.950703 199.480003 498.307718 186.782931 502.736776 174.109442 507.196126 174.107004 590.180796 174.107004 673.167105 174.107004 756.14277L174.107004 756.14277 174.107004 756.14277ZM889.439903 514.239228C864.483252 509.670176 839.665658 504.537053 814.614678 500.816972 797.043375 498.179184 781.834374 504.229229 769.005565 517.044845 720.90892 565.075158 672.552869 612.83285 624.455411 660.844333 609.812387 675.456952 592.619214 678.928973 574.552682 670.498208 546.979202 657.603181 520.14572 643.013485 493.015426 629.093471 484.73395 624.855984 476.565506 620.367981 468.260447 616.158328 448.104027 605.955121 424.376912 613.599134 413.778671 633.629776 403.429264 653.154474 410.414524 677.382487 429.791913 688.388821 486.478232 720.614518 543.214156 752.740336 599.933815 784.899721 600.136298 785.020066 600.334716 785.119126 600.537198 785.256665 624.785566 801.193907 647.501077 798.117308 669.024459 779.764961 693.167112 759.158787 717.41629 738.665592 741.50202 717.988193 753.322479 707.824282 766.680671 704.547925 781.729472 707.848843 815.579928 715.268539 849.402737 722.751274 883.232861 730.159509 885.238176 730.599958 887.348391 730.617969 889.43909 730.839013 889.439903 658.629805 889.439903 586.422237 889.439903 514.239228L889.439903 514.239228 889.439903 514.239228ZM386.758157 334.429285C379.663117 332.539772 373.706536 330.533187 367.629603 329.430426 357.820966 327.59822 348.017206 327.303494 339.80241 334.464488 330.706935 342.41387 327.32002 352.251127 331.096452 364.120349 332.914734 369.79462 334.838729 375.473803 337.04246 382.173061 329.785596 380.309745 323.613521 378.516017 317.360941 377.234783 294.89589 372.576495 277.689706 392.083182 284.912418 413.918192 286.597336 419.025936 288.4514 424.025614 290.694163 430.453889 286.278568 429.337211 282.763982 428.731387 279.457571 427.554945 247.620562 416.315288 231.634156 442.961682 236.980035 466.496274 242.264111 489.791811 261.473983 509.978002 283.495848 513.149568 309.076212 516.841814 329.917333 495.64701 325.83433 470.08291 325.549715 468.256436 325.245583 466.425867 324.782882 463.550662 338.966456 465.547423 352.134361 464.429106 362.581351 453.949185 373.222691 443.273599 373.790295 429.977419 371.396277 415.380356 386.510947 416.793397 400.444874 415.746306 410.747116 403.475932 420.862325 391.405314 421.212809 377.599915 416.917564 362.797365 422.478125 363.332781 427.271037 364.318471 432.036302 364.185027 457.430446 363.511253 473.829949 340.381909 467.105721 314.993007 459.952946 288.003586 422.00729 268.496899 396.200861 278.5683 381.176454 284.426774 374.074908 298.786419 378.937755 314.378179 380.952828 320.805633 383.818492 326.960468 386.758157 334.429285L386.758157 334.429285 386.758157 334.429285Z" />
+                        </svg>
                       </div>
                     </div>
                   </a>
@@ -400,11 +598,10 @@
           </div>
         </div>
       </div>
-
     </main>
   </div>
 </div>
-<div style="display: none;">
+<div *ngIf="this.downloading == 'excel'" style="display: none;">
   <table id="excel-table">
     <div *ngFor="let exception of exceptions">
       <tr>

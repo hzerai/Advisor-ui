@@ -103,7 +103,8 @@ export class PieChartComponent implements OnInit {
       },
       legend: {
         display: true,
-        position: 'top'
+        position: 'bottom',
+        maxHeight : 180,
       },
     }
   };

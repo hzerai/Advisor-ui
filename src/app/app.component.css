@@ -10,25 +10,20 @@
   margin-right: 10px;
 }
 .caused-by {
-	background-color: #000000;
-	color: rgb(10, 228, 10);
-	font-family: Courier;
+  background-color: #000000;
+  color: rgb(10, 228, 10);
+  font-family: Courier;
   font-size: small;
   font-weight: lighter;
 }
-.caused-by::-webkit-scrollbar {
-  display: none;
-}
 .console-body {
   background-color: black;
-  background-image: radial-gradient(
-    rgba(0, 150, 0, 0.75), black 120%
-  );
+  background-image: radial-gradient(rgba(0, 150, 0, 0.75), black 120%);
   overflow: hidden;
   padding: 2rem;
   color: white;
   font: 1.3rem Inconsolata, monospace;
-  text-shadow: 0 0 5px #C8C8C8;
+  text-shadow: 0 0 5px #c8c8c8;
 }
 
 .console-body::after {
@@ -49,10 +44,9 @@
 }
 
 ::selection {
-  background: #0080FF;
+  background: #0080ff;
   text-shadow: none;
 }
-
 
 #prompt {
   font-style: unset;
@@ -93,4 +87,113 @@
 }
 .dropdown-item:hover {
   background-color: transparent;
+}
+.wrapper {
+  margin: 50px auto;
+  width: 280px;
+  height: 370px;
+  background: white;
+  border-radius: 10px;
+  -webkit-box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.3);
+  -moz-box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.3);
+  box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.3);
+  position: relative;
+  z-index: 90;
+}
+
+.ribbon-wrapper-green {
+  width: 85px;
+  height: 88px;
+  overflow: hidden;
+  position: absolute;
+  top: 0px;
+  right: 0px;
+}
+
+.ribbon-green {
+  font: bold 12px Sans-Serif;
+  position: absolute;
+  color: #333;
+  text-align: center;
+  text-shadow: rgba(255, 255, 255, 0.5) 0px 1px 0px;
+  -webkit-transform: rotate(45deg);
+  position: relative;
+  padding: 7px 0;
+  left: -5px;
+  top: 15px;
+  width: 120px;
+  background-color: #bfdc7a;
+  background-image: -webkit-gradient(
+    linear,
+    left top,
+    left bottom,
+    from(#bfdc7a),
+    to(#8ebf45)
+  );
+  background-image: -webkit-linear-gradient(top, #bfdc7a, #8ebf45);
+  background-image: -moz-linear-gradient(top, #bfdc7a, #8ebf45);
+  background-image: -ms-linear-gradient(top, #bfdc7a, #8ebf45);
+  background-image: -o-linear-gradient(top, #bfdc7a, #8ebf45);
+  color: #6a6340;
+  -webkit-box-shadow: 0px 0px 3px rgba(0, 0, 0, 0.3);
+  -moz-box-shadow: 0px 0px 3px rgba(0, 0, 0, 0.3);
+  box-shadow: 0px 0px 3px rgba(0, 0, 0, 0.3);
+}
+
+.ribbon-green:before,
+.ribbon-green:after {
+  content: "";
+  border-top: 3px solid #6e8900;
+  border-left: 3px solid transparent;
+  border-right: 3px solid transparent;
+  position: absolute;
+  bottom: -3px;
+}
+
+.ribbon-green:before {
+  left: 0;
+}
+.ribbon-green:after {
+  right: 0;
+}
+
+#sideNav {
+  position: fixed;
+  top: 40vh;
+  width: 200px;
+  height: 100px;
+  right: -40px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+}
+
+.showCharts {
+  position: absolute;
+  top: 0px;
+  right: 0px;
+  transition: 0.5s;
+}
+.showFilter {
+  position: absolute;
+  top: 50px;
+  right: 0px;
+  transition: 0.5s;
+}
+.collapseAll {
+  position: absolute;
+  top: 100px;
+  right: 0px;
+  transition: 0.5s;
+}
+.expandAll {
+  position: absolute;
+  top: 150px;
+  right: 0px;
+  transition: 0.5s;
+}
+
+#sideNav button:hover {
+  right: 40px;
 }

@@ -4,6 +4,18 @@ import { BaseChartDirective } from 'ng2-charts';
 import { formatDate } from "@angular/common";
 import DatalabelsPlugin from 'chartjs-plugin-datalabels';
 
+const COLORS = [
+  'red',
+  'green',
+  'blue',
+  'yellow',
+  'brown',
+  'magenta',
+  'cyan',
+  'orange',
+  'pink',
+  'black'
+];
 @Component({
   selector: 'app-line-chart',
   templateUrl: './line-chart.component.html',
@@ -11,11 +23,15 @@ import DatalabelsPlugin from 'chartjs-plugin-datalabels';
 })
 export class LineChartComponent implements OnInit {
   @Input('lineData') lineData: Date[];
+  public label: string;
+
 
   ngOnInit(): void {
-
+    if (this.lineData.length == 0) {
+      return;
+    }
+    // this.chart.options.plugins.legend.display = false;
     var data: { date: Date, count: number }[] = [];
-
     this.lineData?.forEach(date => {
       var temp = new Date(date);
       temp.setMilliseconds(0);
@@ -32,7 +48,87 @@ export class LineChartComponent implements OnInit {
       }
     })
     this.lineChartData.labels = [];
-    this.lineChartData.datasets[0].data = [];
+    this.lineChartData.datasets = [{
+      type: 'line',
+      data: [],
+      backgroundColor: this.getBGC,
+      hoverBackgroundColor: this.getBGC,
+      hoverBorderWidth: 2,
+      hoverBorderColor: 'cyan'
+    }];
+    if (!this.label) {
+      const delayBetweenPoints = data.length > 10 ? 100 : 300;
+      const previousY = (ctx) => ctx.index === 0 ? ctx.chart.scales.y.getPixelForValue(100) : ctx.chart.getDatasetMeta(ctx.datasetIndex).data[ctx.index - 1].getProps(['y'], true).y;
+      const animation: any = {
+        x: {
+          type: 'number',
+          easing: 'linear',
+          duration: delayBetweenPoints,
+          from: NaN, // the point is initially skipped
+          delay(ctx) {
+            if (ctx.type !== 'data' || ctx.xStarted) {
+              return 0;
+            }
+            ctx.xStarted = true;
+            return ctx.index * delayBetweenPoints;
+          }
+        },
+        y: {
+          type: 'number',
+          easing: 'linear',
+          duration: delayBetweenPoints,
+          from: previousY,
+          delay(ctx) {
+            if (ctx.type !== 'data' || ctx.yStarted) {
+              return 0;
+            }
+            ctx.yStarted = true;
+            return ctx.index * delayBetweenPoints;
+          }
+        }
+      };
+      this.lineChartOptions = {
+        animation,
+        elements: {
+          line: {
+            tension: 0.4
+          }
+        },
+        scales: {
+          xy: {
+
+          }
+        },
+        interaction: {
+          axis: 'xy',
+          mode: 'nearest'
+        },
+        plugins: {
+          title: {
+            display: true,
+            text: 'Timeline',
+          },
+          legend: { display: true },
+          tooltip: {
+            mode: 'index',
+            enabled: false,
+            position: 'nearest',
+            external: this.externalTooltipHandler,
+            intersect: false,
+          },
+        }
+      };
+    }
+    if (data.length > 2) {
+      this.lineChartData.datasets[0].type = 'line';
+    } else {
+      this.lineChartData.datasets[0].type = 'bar';
+    }
+    if (this.label) {
+      this.lineChartData.datasets[0].label = this.label;
+    } else {
+      this.lineChartOptions.plugins.legend.display = false;
+    }
     data.sort((b, a) => {
       var first = a.date == null ? 0 : new Date(a.date).getTime();
       var second = b.date == null ? 0 : new Date(b.date).getTime();
@@ -41,9 +137,7 @@ export class LineChartComponent implements OnInit {
       this.lineChartData.labels.push(formatDate(d.date, 'dd MMM H:mm', 'en'));
       this.lineChartData.datasets[0].data.push(d.count);
     })
-
   }
-
 
   public getBGC(context) {
     const chart = context.chart;
@@ -90,18 +184,8 @@ export class LineChartComponent implements OnInit {
   }
 
   public lineChartData: ChartConfiguration['data'] = {
-    datasets: [
-      {
-        type: 'bar',
-        data: [],
-        backgroundColor: this.getBGC,
-        hoverBackgroundColor: this.getBGC,
-        hoverBorderWidth: 2,
-        hoverBorderColor: 'cyan',
-        // order: 1
-      }
-    ],
-    labels: []
+    datasets: null,
+    labels: null
   };
 
 
@@ -193,7 +277,7 @@ export class LineChartComponent implements OnInit {
   public lineChartOptions: ChartConfiguration['options'] = {
     elements: {
       line: {
-        tension: 0.5
+        tension: 0.2
       }
     },
     scales: {
@@ -208,9 +292,9 @@ export class LineChartComponent implements OnInit {
     plugins: {
       title: {
         display: true,
-        text: 'Timeline',
+        text: 'Select an exception for the pie chart to show it here',
       },
-      legend: { display: false },
+      legend: { display: true },
       tooltip: {
         mode: 'index',
         enabled: false,
@@ -221,7 +305,7 @@ export class LineChartComponent implements OnInit {
     }
   };
 
-  public lineChartPlugins = [DatalabelsPlugin];
+  public lineChartPlugins = null;
 
   public lineChartType: ChartType = 'line';
 

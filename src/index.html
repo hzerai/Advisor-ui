@@ -14,14 +14,89 @@
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
   <meta name="theme-color" content="#7952b3">
   <style>
-    .ALL::-webkit-scrollbar {
-      display: none;
+    html {
+      overflow-x: hidden;
     }
   </style>
 </head>
 
 <body class="ALL">
   <app-root></app-root>
+  <script>
+    window.onscroll = function () { scrollNav() };
+
+    function scrollNav() {
+      setTimeout(() => {
+        const search = document.getElementById("search");
+        const nav = document.getElementById("nav");
+        const searchParent = document.getElementById("logo");
+        if (document.body.scrollTop > 100 || document.documentElement.scrollTop > 100) {
+          if (search) {
+            if (nav.childElementCount == 2) {
+              search.style.display = '';
+              nav.appendChild(search);
+            }
+          }
+          document.getElementById("ADVISOR").style.fontSize = '2rem';
+          document.getElementById("ribbon").style.top = '-20px';
+          document.getElementById("ribbon-green").style.fontSize = '8px';
+          document.getElementById("palmyra-logo").style.display = 'none';
+          document.getElementById("nav-card").style.marginLeft = '0rem';
+          document.getElementById("by").style.display = 'none';
+        } else {
+          if (search) {
+            search.style.display = 'none';
+            if (nav.childElementCount > 2) {
+              nav.removeChild(search);
+              searchParent.appendChild(search);
+            }
+          }
+          document.getElementById("ADVISOR").style.fontSize = '2.5rem';
+          document.getElementById("ribbon").style.top = '0px';
+          document.getElementById("ribbon-green").style.fontSize = '12px';
+          document.getElementById("palmyra-logo").style.display = 'block';
+          document.getElementById("nav-card").style.marginLeft = '1rem';
+          document.getElementById("by").style.display = 'block';
+        }
+      }, 250);
+    }
+
+    function scrollNav() {
+      setTimeout(() => {
+        const search = document.getElementById("search");
+        const nav = document.getElementById("nav");
+        const searchParent = document.getElementById("logo");
+        if (document.body.scrollTop > 100 || document.documentElement.scrollTop > 100) {
+          if (search) {
+            if (nav.childElementCount == 2) {
+              search.style.display = '';
+              nav.appendChild(search);
+            }
+          }
+          document.getElementById("ADVISOR").style.fontSize = '2rem';
+          document.getElementById("ribbon").style.top = '-20px';
+          document.getElementById("ribbon-green").style.fontSize = '8px';
+          document.getElementById("palmyra-logo").style.display = 'none';
+          document.getElementById("nav-card").style.marginLeft = '0rem';
+          document.getElementById("by").style.display = 'none';
+        } else {
+          if (search) {
+            search.style.display = 'none';
+            if (nav.childElementCount > 2) {
+              nav.removeChild(search);
+              searchParent.appendChild(search);
+            }
+          }
+          document.getElementById("ADVISOR").style.fontSize = '2.5rem';
+          document.getElementById("ribbon").style.top = '0px';
+          document.getElementById("ribbon-green").style.fontSize = '12px';
+          document.getElementById("palmyra-logo").style.display = 'block';
+          document.getElementById("nav-card").style.marginLeft = '1rem';
+          document.getElementById("by").style.display = 'block';
+        }
+      }, 250);
+    }
+  </script>
 </body>
 
 </html>

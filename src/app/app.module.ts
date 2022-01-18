@@ -22,8 +22,7 @@ registerLocaleData(en, 'en');
     LevelColor,
     PieChartComponent,
     LineChartComponent,
-    BubbleChartComponent
-  ],
+    BubbleChartComponent],
   imports: [
     BrowserModule,
     AppRoutingModule,

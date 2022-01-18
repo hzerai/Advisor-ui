@@ -8,4 +8,5 @@ export class ExceptionData {
   stackTrace: string;
   logFile: string;
   causedBy: string[] = [];
+  framework : string;
 }

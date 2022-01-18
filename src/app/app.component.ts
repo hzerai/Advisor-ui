@@ -10,6 +10,7 @@ import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 import { formatDate } from "@angular/common";
 import * as XLSX from 'xlsx';
+import { PalmyraExceptionData } from './PalmyraExceptionData';
 
 let zipFile: JSZip = new JSZip();
 
@@ -20,12 +21,12 @@ let zipFile: JSZip = new JSZip();
 })
 export class AppComponent implements OnInit {
   date: Date = new Date();
-  @ViewChild(BubbleChartComponent) bubble: BubbleChartComponent | undefined;
   @ViewChild(PieChartComponent) pie: PieChartComponent | undefined;
-  @ViewChild(LineChartComponent) line: LineChartComponent | undefined;
+  @ViewChild('line') line: LineChartComponent | undefined;
+  @ViewChild('selectionLine') selectionLine: LineChartComponent | undefined;
   bubEx: Exception;
-  savedReports: { date: string, data: Exception[], lineData: any, fileName: string }[];
-  folderFiles: { fileName: string, count: number }[];
+  savedReports: { date: string, data: Exception[], lineData: any, fileName: string, appName: string }[];
+  folderFiles: { fileName: string, count: number, time: number }[];
   log: { name: string, bytes: any };
   exceptions: Exception[];
   db: Exception[];
@@ -36,6 +37,7 @@ export class AppComponent implements OnInit {
   search: string = "";
   uploading: string;
   lineData: Date[] = [];
+  selectionLineData: Date[] = [];
   currentFile: string;
   fromDate: any;
   fromTime: any;
@@ -46,6 +48,11 @@ export class AppComponent implements OnInit {
   files: FileList;
   fileNb: number = 0;
   showFilter: boolean = false;
+  appName: string;
+  downloading: string;
+  showCharts: boolean = true;
+  jiraId: string = null;
+  useJira: boolean = false;
 
   constructor(private advisor: AdvisorServiceService) { }
 
@@ -68,273 +75,320 @@ export class AppComponent implements OnInit {
   }
 
   analyseFile() {
+    if (!this.file && !this.files && !this.jiraId) {
+      return;
+    }
+    this.initDateParams();
+    this.folderFiles = [];
+    this.exceptions = [];
+    this.db = [];
+    if (this.useJira) {
+      this.analyseLogUrl();
+    }
+    if (this.file) {
+      this.analyseOneFile();
+    } else if (this.files) {
+      this.analyseMultipleFiles();
+    }
+  }
+
+  analyseLogUrl() {
+    this.log = {
+      name: this.jiraId,
+      bytes: null
+    };
+    this.currentFile = this.jiraId;
+    this.uploading = 'SCANNING FILE ' + this.log.name + ', PLEASE HOLD...';
+    this.folderFiles.push({ fileName: this.log.name, count: null, time: new Date().getTime() });
+    this.advisor.analyseJiraTicket(this.jiraId, this.fromDate, this.toDate, this.exceptionNameFilter).subscribe(e => {
+        if(!e){
+          e = [];
+        }
+        let f = this.folderFiles.find(f => f.fileName == this.jiraId);
+        f.count = e.length;
+        f.time = Math.round((new Date().getTime() - f.time) / 1000);
+        e.forEach(ex => {
+          this.treatResultFromService(ex, ex.exception.logFile);
+        })
+        this.fileNb--;
+        if (this.fileNb <= 0) {
+          this.commitOneFile();
+        }
+
+    }, err => {
+      this.rollbackOneFile(err);
+    })
+
+  }
+
+  private analyseMultipleFiles() {
+    // this.multipeFilesConsole();
+    this.fileNb = this.files.length;
+    this.uploading = 'UPLOADING';
+    for (var i = 0; i < this.files.length; i++) {
+      const element = this.files.item(i);
+      this.folderFiles.push({ fileName: element.name, count: null, time: new Date().getTime() });
+      var reader = new FileReader();
+      reader.readAsBinaryString(element);
+      reader.onload = (event) => {
+        this.processOneFile(event, element);
+      };
+    }
+  }
+
+  private processOneFile(event: ProgressEvent<FileReader>, element: File) {
+    this.log = {
+      bytes: event.target.result,
+      name: element.name
+    }
+    this.currentFile = element.name;
+    this.analyseTextFile(element.name);
+  }
+
+  // private multipeFilesConsole() {
+  //   this.uploading = 'SCANNING Multiple files';
+  //   this.log = {
+  //     name: 'multiple',
+  //     bytes: null
+  //   };
+  //   const text: string[] = [];
+  //   text.push('SCANNING MULTIPLE FILES, PLEASE HOLD...');
+  //   for (var i = 0; i < this.files.length; i++) {
+  //     var element = this.files.item(i);
+  //     text.push(element.name);
+  //   }
+  //   this.type(text);
+  //   this.fileNb = this.files.length;
+  // }
+
+  private analyseOneFile() {
+    this.log = {
+      name: this.file.name,
+      bytes: null
+    };
+    this.currentFile = this.log.name;
+    if (this.log.name.endsWith('zip')) {
+      this.handleZipFile();
+    } else {
+      this.handleTextFile();
+    }
+  }
+
+  private handleTextFile() {
+    this.uploading = 'SCANNING FILE ' + this.log.name + ', PLEASE HOLD...';
+    this.folderFiles.push({ fileName: this.log.name, count: null, time: new Date().getTime() });
+    var reader = new FileReader();
+    reader.readAsBinaryString(this.file);
+    reader.onload = (event) => {
+      this.log.bytes = event.target.result;
+      this.log.name = this.file.name;
+      // this.type(this.uploading);
+      this.analyseTextFile(null);
+    };
+  }
+
+  private handleZipFile() {
+    this.uploading = 'DEEP SCANNING ' + this.log.name + ', PLEASE HOLD...';
+    zipFile.loadAsync(this.file).then((zip) => {
+      // this.consoleZipFile(zip);
+      this.fileNb = Object.keys(zip.files).length;
+      Object.keys(zip.files).forEach((filename) => {
+        if (!filename.endsWith('\'') && !filename.endsWith('/')) {
+          this.folderFiles.push({ fileName: filename, count: null, time: new Date().getTime() });
+          this.processOneFileInZip(zip, filename);
+        } else {
+          this.fileNb--;
+        }
+      });
+    });
+  }
+
+  private processOneFileInZip(zip: JSZip, filename: string) {
+    zip.files[filename].async('arraybuffer').then((fileData) => {
+      this.advisor.analyseLog(fileData, this.fromDate, this.toDate, this.exceptionNameFilter).subscribe(e => {
+        let f = this.folderFiles.find(f => f.fileName == filename);
+        f.count = e.length;
+        f.time = Math.round((new Date().getTime() - f.time) / 1000);
+        this.analyseZipEntry(e, filename);
+        this.fileNb--;
+        if (this.fileNb <= 0) {
+          this.commitZipFile();
+        }
+      }, err => {
+        this.fileNb--;
+        console.log(err)
+      });
+    });
+  }
+
+  private analyseZipEntry(e: Exception[], filename: string) {
+    e.forEach(ex => {
+      this.treatResultFromService(ex, filename);
+    });
+  }
+
+  private commitZipFile() {
+    this.saveFileResultToLocalStorage()
+    this.file = null;
+    this.files = null;
+    this.log = null;
+  }
+
+  // private consoleZipFile(zip: JSZip) {
+  //   Object.keys(zip.files).forEach((filename) => {
+  //     if (filename.trim().length != 0) {
+  //       this.folderFiles.push({ fileName: filename, count: null, time: new Date().getTime() });
+  //     }
+  //   });
+  //   var text: string[] = [];
+  //   text.push(this.uploading);
+  //   text.push('SCAN COMPLETE');
+  //   text.push('FOUND ' + this.folderFiles.length + ' FILES');
+  //   text.push('PRINTING...');
+  //   this.folderFiles.forEach(v => text.push(v.fileName));
+  //   this.type(text);
+  // }
+
+  private initDateParams() {
     if (this.fromDate) {
       this.fromDate = new Date(Date.parse(this.fromDate));
       if (this.fromTime) {
-        this.fromDate.setHours(new Number(this.fromTime.split(':')[0]))
-        this.fromDate.setMinutes(new Number(this.fromTime.split(':')[1]))
+        this.fromDate.setHours(new Number(this.fromTime.split(':')[0]));
+        this.fromDate.setMinutes(new Number(this.fromTime.split(':')[1]));
       }
     }
     if (this.toDate) {
       this.toDate = new Date(Date.parse(this.toDate));
       if (this.toTime) {
-        this.toDate.setHours(new Number(this.toTime.split(':')[0]))
-        this.toDate.setMinutes(new Number(this.toTime.split(':')[1]))
-      }
-    }
-    if (this.file) {
-      this.log = {
-        name: this.file.name,
-        bytes: null
-      }
-      this.currentFile = this.log.name;
-      if (this.log.name.endsWith('zip')) {
-        this.uploading = 'DEEP SCANNING ' + this.log.name + ', PLEASE HOLD...';
-        this.folderFiles = [];
-        zipFile.loadAsync(this.file).then((zip) => {
-          this.exceptions = [];
-          this.db = [];
-          let zipSize: number = Object.keys(zip.files).length;
-          Object.keys(zip.files).forEach((filename) => {
-            let fn = filename.substring(filename.lastIndexOf('/') + 1);
-
-            if (fn.trim().length != 0) {
-              this.folderFiles.push({ fileName: fn, count: null });
-            }
-          })
-          var text: string[] = [];
-          text.push(this.uploading);
-          text.push('SCAN COMPLETE')
-          text.push('FOUND ' + this.folderFiles.length + ' FILES')
-          text.push('PRINTING...')
-          this.folderFiles.forEach(v => text.push(v.fileName))
-          this.type(text);
-          Object.keys(zip.files).forEach((filename) => {
-            zip.files[filename].async('arraybuffer').then((fileData) => {
-              this.advisor.analyseLog(fileData, this.fromDate, this.toDate, this.exceptionNameFilter).subscribe(e => {
-                zipSize--;
-                e.forEach(ex => {
-                  var exe = this.prepare(ex, filename);
-                  var foundEx = this.exceptions.find(e => {
-                    // if (e.message.trim() == 'empty' || e.message.trim() == '' || e.message.trim() == 'null') {
-                    //   if (e.hint && exe.hint.trim() != '' && e.todo && e.todo.trim() != '') {
-                    //     return e.todo == exe.todo && e.hint == exe.hint;
-                    //   } else {
-                    //     return e.exception.stackTrace.includes(exe.exception.stackTrace) || exe.exception.stackTrace.includes(e.exception.stackTrace);
-                    //   }
-                    // } else {
-                    //   return e.message.trim() == exe.message.trim();
-                    // }
-                    return e.key == exe.key;
-                  });
-                  var alreadyMapped = foundEx;
-                  if (alreadyMapped) {
-                    var ch = alreadyMapped.child;
-                    if (ch) {
-                      alreadyMapped = ch;
-                      while (alreadyMapped) {
-                        ch = alreadyMapped;
-                        alreadyMapped = alreadyMapped.child;
-                      }
-                      ch.child = exe;
-                    } else {
-                      alreadyMapped.child = exe
-                    }
-                    foundEx.count = foundEx.count + exe.count;
-                  } else {
-                    this.exceptions.push(exe);
-                    this.db.push(exe);
-                  }
-
-                })
-                // this.folderFiles.find(i => i.fileName === filename).count = e.length;
-                if (zipSize < 1) {
-                  setTimeout(() => {
-                    this.uploading = null;
-                    var saved: string = window.localStorage.getItem('savedReports');
-                    var savedItems: { date: string, data: Exception[], lineData: any, fileName: string }[];
-                    if (saved != null) {
-                      savedItems = JSON.parse(saved);
-                      if (savedItems.length > 2) {
-                        savedItems.pop();
-                      }
-                    } else {
-                      savedItems = [];
-                    }
-                    savedItems.unshift({
-                      date: new Date().toISOString(),
-                      data: this.exceptions,
-                      lineData: this.lineData,
-                      fileName: this.log.name
-                    })
-                    try {
-                      window.localStorage.setItem('savedReports', JSON.stringify(savedItems))
-                    } catch (Error) {
-                      try {
-                        window.localStorage.removeItem('savedReports')
-                        savedItems = [];
-                        savedItems.unshift({
-                          date: new Date().toISOString(),
-                          data: this.exceptions,
-                          lineData: this.lineData,
-                          fileName: this.log.name
-                        })
-                        window.localStorage.setItem('savedReports', JSON.stringify(savedItems))
-                      } catch (Error) {
-                      }
-
-                    }
-                    this.log = null;
-                    this.file = null;
-                    this.folderFiles = null;
-                  },
-                    1000);
-                }
-              }, err => {
-                this.db = [];
-                this.uploading = null;
-                this.log = null;
-                this.file = null;
-                this.folderFiles = null;
-                this.error = err.statusText;
-              })
-
-            });
-          });
-
-        });
-      } else {
-        this.uploading = 'SCANNING FILE ' + this.log.name + ', PLEASE HOLD...';
-        var reader = new FileReader();
-        reader.readAsBinaryString(this.file)
-        reader.onload = (event) => {
-          this.log.bytes = event.target.result;
-          this.log.name = this.file.name;
-          this.type(this.uploading);
-          this.analyse(null);
-        }
-      }
-    } else if (this.files) {
-      this.uploading = 'SCANNING Multiple files';
-      this.log = {
-        name: 'multiple',
-        bytes: null
-      }
-      const text: string[] = []
-      text.push('SCANNING MULTIPLE FILES, PLEASE HOLD...');
-      for (var i = 0; i < this.files.length; i++) {
-        var element = this.files.item(i);
-        text.push(element.name);
-      }
-      this.type(text);
-      this.fileNb = this.files.length;
-
-      for (var i = 0; i < this.files.length; i++) {
-        const element = this.files.item(i);
-        var reader = new FileReader();
-        reader.readAsBinaryString(element)
-        reader.onload = (event) => {
-          this.log.bytes = event.target.result;
-          this.log.name = element.name;
-          this.currentFile = element.name;
-          this.exceptions = [];
-          this.db = [];
-          this.analyse(element.name);
-        }
+        this.toDate.setHours(new Number(this.toTime.split(':')[0]));
+        this.toDate.setMinutes(new Number(this.toTime.split(':')[1]));
       }
     }
   }
 
-  analyse(fileName) {
+  analyseTextFile(fileName) {
     this.advisor.analyseLog(this.log.bytes, this.fromDate, this.toDate, this.exceptionNameFilter).subscribe(e => {
       {
         if (!fileName) {
-          this.exceptions = [];
-          this.db = [];
           fileName = this.log.name;
         }
+        let f = this.folderFiles.find(f => f.fileName == fileName);
+        f.count = e.length;
+        f.time = Math.round((new Date().getTime() - f.time) / 1000);
         e.forEach(ex => {
-          var exe = this.prepare(ex, fileName);
-          var foundEx = this.exceptions.find(e => {
-            return e.key == exe.key;
-          });
-          var alreadyMapped = foundEx;
-          if (alreadyMapped) {
-            var ch = alreadyMapped.child;
-            if (ch) {
-              alreadyMapped = ch;
-              while (alreadyMapped) {
-                ch = alreadyMapped;
-                alreadyMapped = alreadyMapped.child;
-              }
-              ch.child = exe;
-            } else {
-              alreadyMapped.child = exe
-            }
-            foundEx.count = foundEx.count + exe.count;
-          } else {
-            this.exceptions.push(exe);
-            this.db.push(exe);
-          }
-
+          this.treatResultFromService(ex, fileName);
         })
         this.fileNb--;
         if (this.fileNb <= 0) {
-          var fileNames: string = this.log.name;
-          if (this.files) {
-            for (var i = 0; i < this.files.length; i++) {
-              var element = this.files.item(i);
-              fileNames = fileNames + '_' + element.name;
-            }
-          }
-          var saved: string = window.localStorage.getItem('savedReports');
-          var savedItems: { date: string, data: Exception[], lineData: any, fileName: string }[];
-          if (saved != null) {
-            savedItems = JSON.parse(saved);
-            if (savedItems.length > 2) {
-              savedItems.pop();
-            }
-          } else {
-            savedItems = [];
-          }
-          savedItems.unshift({
-            date: new Date().toISOString(),
-            data: this.exceptions,
-            lineData: this.lineData,
-            fileName: fileNames
-          })
-          try {
-            window.localStorage.setItem('savedReports', JSON.stringify(savedItems))
-          } catch (Error) {
-            console.log(Error)
-          }
-          this.uploading = null;
-          this.log = null;
-          this.file = null;
-          this.files = null;
+          this.commitOneFile();
         }
       }
     }, err => {
-      this.db = [];
-      this.uploading = null;
-      this.log = null;
-      this.file = null;
-      this.files = null;
-      console.log(err)
-      this.error = err.statusText;
+      this.rollbackOneFile(err);
     })
   }
 
 
-  occurences(exception: Exception) {
+  private rollbackOneFile(err: any) {
+    this.fileNb--;
+    this.db = [];
+    this.exceptions = [];
+    this.uploading = null;
+    this.jiraId = null;
+    this.log = null;
+    this.file = null;
+    this.files = null;
+    this.folderFiles = null;
+    console.log(err);
+    this.error = err.statusText;
+  }
+
+  private commitOneFile() {
+    this.saveFileResultToLocalStorage();
+    this.file = null;
+    this.files = null;
+    this.log = null;
+    this.jiraId = null;
+  }
+
+  private saveFileResultToLocalStorage() {
+    if (this.files) {
+      var filename = this.folderFiles.map(f => f.fileName).join('_');
+    } else {
+      var filename = this.log.name;
+    }
+    this.currentFile = filename;
+    var saved: string = window.localStorage.getItem('savedReports');
+    var savedItems: { date: string; data: Exception[]; lineData: any; fileName: string; appName: string; }[];
+    if (saved != null) {
+      savedItems = JSON.parse(saved);
+      if (savedItems.length > 2) {
+        savedItems.pop();
+      }
+    } else {
+      savedItems = [];
+    }
+    savedItems.unshift({
+      date: new Date().toISOString(),
+      data: this.exceptions,
+      lineData: this.lineData,
+      fileName: filename,
+      appName: this.appName
+    });
+    try {
+      window.localStorage.setItem('savedReports', JSON.stringify(savedItems));
+    } catch (Error) {
+      try {
+        window.localStorage.removeItem('savedReports');
+        savedItems = [];
+        savedItems.unshift({
+          date: new Date().toISOString(),
+          data: this.exceptions,
+          lineData: this.lineData,
+          fileName: filename,
+          appName: this.appName
+        });
+        window.localStorage.setItem('savedReports', JSON.stringify(savedItems));
+      } catch (Error) {
+      }
+    }
+  }
+
+  private treatResultFromService(ex: Exception, fileName: any) {
+    var exe = this.prepare(ex, fileName);
+    var foundEx = this.exceptions.find(e => {
+      return e.key == exe.key;
+    });
+    var alreadyMapped = foundEx;
+    if (alreadyMapped) {
+      this.mergeTwoExceptions(alreadyMapped, exe, foundEx);
+    } else {
+      this.exceptions.push(exe);
+      this.db.push(exe);
+    }
+  }
+
+  private mergeTwoExceptions(alreadyMapped: Exception, exe: Exception, foundEx: Exception) {
+    var ch = alreadyMapped.child;
+    if (ch) {
+      alreadyMapped = ch;
+      while (alreadyMapped) {
+        ch = alreadyMapped;
+        alreadyMapped = alreadyMapped.child;
+      }
+      ch.child = exe;
+    } else {
+      alreadyMapped.child = exe;
+    }
+    foundEx.count = foundEx.count + exe.count;
+  }
+
+  occurences(exception: Exception): any {
     var result: ExceptionData[] = [];
-    var ch: Exception = exception.child;
-    exception.exception.logFile = exception.logFile;
-    result.push(exception.exception);
-    while (ch != null) {
-      ch.exception.logFile = ch.logFile;
-      result.unshift(ch.exception);
-      ch = ch.child;
+    while (exception != null) {
+      exception.exception.logFile = exception.logFile;
+      result.unshift(exception.exception);
+      exception = exception.child;
     }
     return result;
   }
@@ -373,16 +427,19 @@ export class AppComponent implements OnInit {
     this.db = savedReport.data;
     this.lineData = savedReport.lineData;
     this.currentFile = savedReport.fileName;
+    this.appName = savedReport.appName;
   }
 
 
   prepare(ex: Exception, fileName: string) {
-    console.log(fileName)
     ex.logFile = fileName;
     ex.count = 1;
     ex.lastOccurence = ex.exception.date;
     ex.firstOccurence = ex.exception.date;
     this.lineData.push(ex.exception.date);
+    if (!this.appName && 'Palmyra' == ex.exception.framework) {
+      this.appName = (<PalmyraExceptionData>ex.exception).application;
+    }
     ex.exception.causedBy.reverse();
     var ch: Exception = ex.child;
     var message: string = ex.exception.message;
@@ -469,47 +526,56 @@ export class AppComponent implements OnInit {
       this.exceptions.sort((a: Exception, b: Exception) => {
         return a.count - b.count;
       });
-
     }
     this.sortedByCount = !this.sortedByCount;
   }
 
 
   updateBubbleChart(event) {
-    this.bubble.exception = event;
-    this.bubble.ngOnInit();
+    const name = event.exception.name;
+    const result: Date[] = [];
+    while (event != null) {
+      event.exception.logFile = event.logFile;
+      result.unshift(event.exception.date);
+      event = event.child;
+    }
+    this.selectionLine.label = name;
+    this.selectionLine.lineData = result;
+    this.selectionLine.ngOnInit();
+    this.selectionLine.chart.update();
   }
 
-  type(text) {
-    setTimeout(() => {
-      var screen = document.getElementById('screen');
-      if (!text || !text.length || !(screen instanceof Element)) {
-        return;
-      }
-      if ('string' !== typeof text) {
-        text = text.join('\n');
-      }
+  // type(text) {
+  //   setTimeout(() => {
+  //     var screen = document.getElementById('screen');
+  //     if (!text || !text.length || !(screen instanceof Element)) {
+  //       return;
+  //     }
+  //     if ('string' !== typeof text) {
+  //       text = text.join('\n');
+  //     }
 
-      text = text.replace(/\r\n?/g, '\n').split('');
-      var prompt: any = screen.lastChild;
-      prompt.className = 'idle';
+  //     text = text.replace(/\r\n?/g, '\n').split('');
+  //     var prompt: any = screen.lastChild;
+  //     prompt.className = 'idle';
 
-      const typer = function () {
-        var character = text.shift();
-        screen.insertBefore(
-          character === '\n'
-            ? document.createElement('br')
-            : document.createTextNode(character),
-          prompt
-        );
-        if (text.length) {
-          setTimeout(typer, 10);
-        }
-      };
-      setTimeout(typer, 100);
-    }, 500);
+  //     const typer = function () {
+  //       var character = text.shift();
+  //       screen.removeChild(prompt)
+  //       if (character === '\n') {
+  //         screen.innerText = "";
+  //       } else {
+  //         screen.innerText = screen.innerText + character
+  //       }
+  //       screen.appendChild(prompt)
+  //       if (text.length) {
+  //         setTimeout(typer, 50);
+  //       }
+  //     };
+  //     setTimeout(typer, 100);
+  //   }, 100);
 
-  };
+  // };
 
   getClippedRegion(image, x, y, width, height) {
 
@@ -524,17 +590,12 @@ export class AppComponent implements OnInit {
 
     return canvas;
   }
-  downloading: string;
 
   SavePDF() {
     this.downloading = 'pdf';
 
     setTimeout(() => {
-      var exceptions = document.getElementsByClassName("exception");
-      for (var i = 0; i < exceptions.length; i++) {
-        exceptions[i].classList.remove('collapse')
-      }
-
+      this.expandAll();
       let content = document.getElementById('content');
       let PDF = new jsPDF('p', 'mm', 'a4', true);
       html2canvas(content).then(canvas => {
@@ -551,9 +612,7 @@ export class AppComponent implements OnInit {
 
       }).finally(() => {
         PDF.save(this.currentFile + '__' + new Date().toISOString() + '__Advisor-Analysis.pdf');
-        for (var i = 0; i < exceptions.length; i++) {
-          exceptions[i].classList.add('collapse')
-        }
+        this.collapseAll();
         this.downloading = null;
       });
     }, 1000);
@@ -578,19 +637,26 @@ export class AppComponent implements OnInit {
   filterLevels: string[];
   filterLoggers: string[];
   filterFiles: string[];
-  filterObject: { name: string, level: string, thread: string, logger: string, file: string, fromDate: Date, toDate: Date } = {
+  filterUsers: string[];
+  filterTenants: string[];
+  filterObject: { name: string, level: string, thread: string, logger: string, file: string, user: string, tenant: string, fromDate: Date, toDate: Date } = {
     name: null,
     level: null,
     thread: null,
     logger: null,
     file: null,
+    user: null,
+    tenant: null,
     fromDate: null,
     toDate: null
   }
+
   initFilter() {
     if (!this.filterNames) {
       const names = [];
       const threads = [];
+      const users = [];
+      const tenants = [];
       const loggers = [];
       const levels = [];
       const files = [];
@@ -598,6 +664,12 @@ export class AppComponent implements OnInit {
         let ch = exception;
         while (ch != null) {
           names.push(ch.exception.name)
+          if (this.appName && (<PalmyraExceptionData>ch.exception).user) {
+            users.push((<PalmyraExceptionData>ch.exception).user)
+          }
+          if (this.appName && (<PalmyraExceptionData>ch.exception).tenant) {
+            tenants.push((<PalmyraExceptionData>ch.exception).tenant)
+          }
           files.push(ch.logFile)
           levels.push(ch.exception.level)
           threads.push(ch.exception.thread)
@@ -607,6 +679,8 @@ export class AppComponent implements OnInit {
       })
 
       this.filterNames = Array.from(new Set(names));
+      this.filterUsers = Array.from(new Set(users));
+      this.filterTenants = Array.from(new Set(tenants));
       this.filterFiles = Array.from(new Set(files));
       this.filterThreads = Array.from(new Set(threads));
       this.filterLevels = Array.from(new Set(levels));
@@ -616,20 +690,31 @@ export class AppComponent implements OnInit {
   }
 
   filterUsingObject() {
+    this.search = null;
     let name = this.filterObject.name;
+    let user = this.filterObject.user;
+    let tenant = this.filterObject.tenant;
     let file = this.filterObject.file;
     let thread = this.filterObject.thread;
     let level = this.filterObject.level;
     let logger = this.filterObject.logger;
     let fromDate = this.filterObject.fromDate;
     let toDate = this.filterObject.toDate;
-    if ((file && file != 'null') || (name && name != 'null') || (thread && thread != 'null') || (level && level != 'null') || (logger && logger != 'null') || fromDate || toDate) {
+    var temp;
+    if ((user && user != 'null') || (tenant && tenant != 'null') || (file && file != 'null') || (name && name != 'null') || (thread && thread != 'null') || (level && level != 'null') || (logger && logger != 'null') || fromDate || toDate) {
       var tempLineData = [];
       this.exceptions = this.db.map(e => {
-
-        let childs = [];
-        let ch = e;
+        const childs = [];
+        var ch = e;
         while (ch != null) {
+          if (user && user != (<PalmyraExceptionData>ch.exception).user) {
+            ch = ch.child;
+            continue;
+          }
+          if (tenant && tenant != (<PalmyraExceptionData>ch.exception).tenant) {
+            ch = ch.child;
+            continue;
+          }
           if (file && file != ch.logFile) {
             ch = ch.child;
             continue;
@@ -660,14 +745,25 @@ export class AppComponent implements OnInit {
           }
           ch.todo = e.todo;
           ch.hint = e.hint;
+          temp = JSON.parse(JSON.stringify(ch));
           tempLineData.push(ch.exception.date);
-          childs.push(ch);
+          childs.push(temp);
           ch = ch.child;
         }
+        var result = childs[0];
         for (var i = 1; i < childs.length; ++i) {
+          if (childs[i].stacktrace) {
+            childs[0].exception.stacktrace = childs[i].exception.stacktrace;
+            childs[0].exception.causedBy = childs[i].exception.causedBy;
+          }
           childs[i - 1].child = childs[i];
         }
-        return childs[0];
+        if (result) {
+          result.count = childs.length;
+          result.firstOccurence = childs[0].firstOccurence;
+          result.lastOccurence = childs[childs.length - 1].firstOccurence;
+        }
+        return result;
       }
       ).filter(e => e)
       this.line.lineData = tempLineData;
@@ -689,12 +785,16 @@ export class AppComponent implements OnInit {
 
   restUsingObject() {
 
+    this.currentTransactionalSearch = null;
+    this.search = null;
     this.filterObject = {
       name: null,
       level: null,
       thread: null,
       logger: null,
       file: null,
+      user: null,
+      tenant: null,
       fromDate: null,
       toDate: null
     };
@@ -707,4 +807,72 @@ export class AppComponent implements OnInit {
     this.pie.ngOnInit();
     this.pie.chart.update();
   }
+
+  currentTransactionalSearch: string;
+
+  transactionalSearch(transaction: string) {
+    if (!transaction || '' == transaction) {
+      return;
+    }
+    this.search = null;
+    this.currentTransactionalSearch = transaction;
+    var temp;
+    var tempLineData = [];
+    this.exceptions = this.db.map(e => {
+      const childs = [];
+      var ch = e;
+      while (ch != null) {
+        if (transaction != (<PalmyraExceptionData>ch.exception).transaction) {
+          ch = ch.child;
+          continue;
+        }
+        tempLineData.push(ch.exception.date);
+        temp = JSON.parse(JSON.stringify(ch));
+        temp.child = null;
+        temp.firstOccurence = temp.exception.date;
+        childs.push(temp);
+        ch = ch.child;
+      }
+      for (var i = 1; i < childs.length; ++i) {
+        if (childs[i].stacktrace) {
+          childs[0].exception.stacktrace = childs[i].exception.stacktrace;
+          childs[0].exception.causedBy = childs[i].exception.causedBy;
+        }
+        childs[i - 1].child = childs[i];
+      }
+      var result = childs[0];
+      if (result) {
+        result.count = childs.length;
+        result.firstOccurence = childs[0].firstOccurence;
+        result.lastOccurence = childs[childs.length - 1].firstOccurence;
+      }
+      return result;
+    }
+    ).filter(e => e)
+    this.line.lineData = tempLineData;
+    this.line.ngOnInit();
+    this.line.chart.update();
+    this.pie.exceptions = this.exceptions;
+    this.pie.ngOnInit();
+    this.pie.chart.update();
+  }
+
+  collapseAll() {
+    var exceptions = document.getElementsByClassName("exception");
+    for (var i = 0; i < exceptions.length; i++) {
+      exceptions[i].classList.remove('show')
+    }
+  }
+
+  expandAll() {
+    var exceptions = document.getElementsByClassName("exception");
+    for (var i = 0; i < exceptions.length; i++) {
+      exceptions[i].classList.add('show')
+    }
+  }
+
+  scroll(event) {
+    console.log(event)
+  }
+
 }

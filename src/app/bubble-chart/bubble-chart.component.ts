@@ -20,7 +20,8 @@ export class BubbleChartComponent implements OnInit {
     'magenta',
     'cyan',
     'orange',
-    'pink'
+    'pink',
+    'black'
   ];
   ngOnInit(): void {
 
@@ -31,11 +32,7 @@ export class BubbleChartComponent implements OnInit {
     var ch: Exception = this.exception;
     while (ch != null) {
       var date = ch.exception.date;
-      data.push({
-        x: date,
-        y: date,
-        r: 5
-      });
+      data.push(date);
       ch = ch.child;
     }
     this.chart.data.datasets.push({
@@ -51,30 +48,31 @@ export class BubbleChartComponent implements OnInit {
   }
 
   public bubbleChartOptions: ChartConfiguration['options'] = {
-    scales: {
-      x: {
-        type: 'timeseries',
-        time: {
-          unit: 'day',
-          tooltipFormat: 'yyyy-MM-DD'
-        }
-      },
-      y: {
-        type: 'time',
-        time: {
-          unit: 'second',
-          tooltipFormat: 'hh:mm:ss.SSS'
-        }
+    elements: {
+      line: {
+        tension: 0.5
       }
-    }, plugins: {
+    },
+    scales: {
+      xy: {
+
+      }
+    },
+    interaction: {
+      axis: 'xy',
+      mode: 'nearest'
+    },
+    plugins: {
       title: {
         display: true,
-        text: 'Occurences',
+        text: 'Timeline',
       },
       legend: { display: false },
       tooltip: {
         mode: 'index',
-        intersect: false
+        enabled: false,
+        position: 'nearest',
+        intersect: false,
       },
     }
   };
