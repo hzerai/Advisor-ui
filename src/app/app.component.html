@@ -1,4 +1,4 @@
-<nav class="navbar navbar-dark bg-primary fixed-top" id="nav" style="transition:height 1s ease-in-out;">
+<!-- <nav class="navbar navbar-dark bg-{{theme}} fixed-top" id="nav" style="transition:height 1s ease-in-out;">
   <div class="ribbon-wrapper-green" id="ribbon">
     <div class="ribbon-green" id="ribbon-green">Alpha version</div>
   </div>
@@ -15,9 +15,23 @@
         aria-describedby="basic-addon1" [disabled]="downloading">
     </div>
   </a>
-</nav>
+</nav> -->
 
-<div class="container container-fluid" style="margin: 6rem auto">
+<div class="header header-{{theme}}">
+  <a href="/" class="mx-auto">
+    <div class="advisor">
+      <img src="assets\img\palmyraLogo.png" alt="logo" class="logo">
+    </div>
+  </a>
+  <div class="me-2">
+    <p class="text-white fw-bold m-auto mb-1">Theme</p>
+    <div (click)="changeTheme()" [ngClass]="theme == 'dark' ? 'bg-primary' : 'bg-dark'"
+      style="width: 30px; height: 30px; border-radius: 50%; margin: auto auto; cursor: pointer;">
+    </div>
+  </div>
+</div>
+
+<div class="container container-fluid" style="margin-bottom: 6rem; margin-top: 1rem;">
   <div>
     <main>
       <div *ngIf="!this.db && !this.uploading">
@@ -28,11 +42,11 @@
           <p>Our aim is to collect more user requirements.</p>
         </div>
         <div class="w-100 d-flex flex-column justify-content-center align-items-center ">
-          <div class="btn-group w-25 mt-5">
-            <button (click)="useJira=false" [ngClass]="useJira ? 'btn-outline-primary' : 'btn-primary'" class="btn w-50"
-              for="btnradio1">Upload files</button>
-            <button (click)="useJira=true" [ngClass]="useJira ? 'btn-primary' : 'btn-outline-primary'" class="btn w-50"
-              for="btnradio2">Analyse jira ticket</button>
+          <div (click)="useJira=!useJira" class="btn-group w-25 mt-5">
+            <input class="m-0" (click)="useJira=!useJira" type="checkbox" checked data-toggle="toggle"
+              data-on="<img src='assets\img\jira.png' class='my-0' alt='jira logo' width='50px' height='30px'>Analyse jira ticket"
+              data-off="<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' fill='currentColor' class='bi bi-cloud-arrow-up me-2 my-0' viewBox='0 0 17 17'>          <path fill-rule='evenodd'                d='M7.646 5.146a.5.5 0 0 1 .708 0l2 2a.5.5 0 0 1-.708.708L8.5 6.707V10.5a.5.5 0 0 1-1 0V6.707L6.354 7.854a.5.5 0 1 1-.708-.708l2-2z' />              <path                d='M4.406 3.342A5.53 5.53 0 0 1 8 2c2.69 0 4.923 2 5.166 4.579C14.758 6.804 16 8.137 16 9.773 16 11.569 14.502 13 12.687 13H3.781C1.708 13 0 11.366 0 9.318c0-1.763 1.266-3.223 2.942-3.593.143-.863.698-1.723 1.464-2.383zm.653.757c-.757.653-1.153 1.44-1.153 2.056v.448l-.445.049C2.064 6.805 1 7.952 1 9.318 1 10.785 2.23 12 3.781 12h8.906C13.98 12 15 10.988 15 9.773c0-1.216-1.02-2.228-2.313-2.228h-.5v-.5C12.188 4.825 10.328 3 8 3a4.53 4.53 0 0 0-2.941 1.1z' />            </svg>Upload files"
+              data-offstyle="success" data-onstyle="outline-success">
           </div>
           <div class="rounded shadow-lg body-bg p-5 w-75">
             <div class="input-group">
@@ -40,7 +54,7 @@
                 placeholder="Jira Key (example : HHH-5035)" aria-describedby="Jira Key">
               <input *ngIf="!useJira" (change)="fileChange($event)" type="file" class="form-control"
                 id="inputGroupFile04" aria-describedby="inputGroupFileAddon04" aria-label="Upload" multiple>
-              <button *ngIf="!useJira" (click)="analyseFile()" class="btn btn-outline-primary w-25 fs-6" type="button"
+              <button *ngIf="!useJira" (click)="analyseFile()" class="btn btn-outline-{{theme}} w-25 fs-6" type="button"
                 id="inputGroupFileAddon04" [disabled]="!file && !files && !jiraId">
                 Analyse
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor"
@@ -51,7 +65,7 @@
                     d="M4.406 3.342A5.53 5.53 0 0 1 8 2c2.69 0 4.923 2 5.166 4.579C14.758 6.804 16 8.137 16 9.773 16 11.569 14.502 13 12.687 13H3.781C1.708 13 0 11.366 0 9.318c0-1.763 1.266-3.223 2.942-3.593.143-.863.698-1.723 1.464-2.383zm.653.757c-.757.653-1.153 1.44-1.153 2.056v.448l-.445.049C2.064 6.805 1 7.952 1 9.318 1 10.785 2.23 12 3.781 12h8.906C13.98 12 15 10.988 15 9.773c0-1.216-1.02-2.228-2.313-2.228h-.5v-.5C12.188 4.825 10.328 3 8 3a4.53 4.53 0 0 0-2.941 1.1z" />
                 </svg>
               </button>
-              <button *ngIf="useJira" (click)="analyseFile()" class="btn btn-outline-primary w-25 fs-6" type="button"
+              <button *ngIf="useJira" (click)="analyseFile()" class="btn btn-outline-{{theme}} w-25 fs-6" type="button"
                 id="inputGroupFileAddon04" [disabled]="!file && !files && !jiraId"> Analyse
                 <img src="assets\img\jira.png" class="my-0" alt="jira logo" width="30px" height="20px">
               </button>
@@ -87,7 +101,7 @@
               <div class="d-flex justify-content-between p-0">
                 <p class="text-truncate m-0">{{savedReport.fileName}}</p>
                 <span
-                  class="badge bg-primary position-relative p-auto d-flex align-items-center justify-content-center">
+                  class="badge bg-{{theme}} position-relative p-auto d-flex align-items-center justify-content-center">
                   <p class="my-1"> {{savedReport.date|date:'yyyy-MM-dd HH:mm:ss'}} </p>
                   <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
                     {{savedReport.data.length}}
@@ -99,7 +113,7 @@
           </div>
         </div>
       </div>
-      <div class="container" *ngIf="this.uploading" style="width: 50vw;">
+      <div class="container mt-5" *ngIf="this.uploading" style="width: 50vw;">
         <div *ngIf="!this.log" class="card text-white w-100"
           [ngClass]="this.db.length > 0 ? 'border-danger' : 'border-success'">
           <div class="card-header text-black">Advisor</div>
@@ -122,7 +136,7 @@
           </div>
         </div>
         <div *ngIf="this.log" class="w-100 d-flex justify-content-center align-items-center ">
-          <div class="spinner-grow text-primary" role="status">
+          <div class="spinner-grow text-{{theme}}" role="status">
             <span class="visually-hidden">Loading...</span>
           </div>
           <div class="spinner-grow text-secondary" role="status">
@@ -155,7 +169,12 @@
                 <span *ngIf="item.count != null" class="badge badge-pill"
                   [ngClass]="item.count > 0 ? 'bg-danger' : 'bg-success'"> found {{item.count}} exceptions in
                   {{item.time}} seconds</span>
-                <span *ngIf="item.count == null" class="badge bg-primary badge-pill">scanning</span>
+                <div *ngIf="item.count == null" class="w-25">
+                  <div class="progress">
+                    <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
+                      aria-valuenow="75" aria-valuemin="0" aria-valuemax="100" style="width: 75%"></div>
+                  </div>
+                </div>
               </div>
             </li>
           </ul>
@@ -174,7 +193,7 @@
                 We would like to help you next time, it would be great if you shared this file with us. Thanks!
               </div>
               <div class="error-actions">
-                <a href="" class="btn btn-primary btn-lg">
+                <a href="" class="btn btn-{{theme}} btn-lg">
                   <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="currentColor"
                     class="bi bi-house-door-fill" viewBox="0 0 19 19">
                     <path
@@ -196,23 +215,23 @@
       <div *ngIf="db && db.length > 0 && !log && !this.uploading">
         <div class="row d-flex flex-md-nowrap mt-3">
           <div class="input-group d-flex">
-            <span class="input-group-text" id="basic-addon1">
-              <a (click)="initFilter(); showFilter = !showFilter" data-bs-toggle="collapse" href="#filter" role="button"
-                aria-expanded="false" aria-controls="filter">
+            <a class="text-{{theme}}" (click)="initFilter(); showFilter = !showFilter" data-bs-toggle="collapse"
+              href="#filter" role="button" aria-expanded="false" aria-controls="filter">
+              <span class="input-group-text" id="basic-addon1" class="text-{{theme}}">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
                   <path fill-rule="evenodd"
                     d="M7.72.22a.75.75 0 011.06 0l1.204 1.203A4.983 4.983 0 0112 1c.717 0 1.4.151 2.016.423L15.22.22a.75.75 0 011.06 1.06l-.971.972A4.988 4.988 0 0117 6v1.104a2.755 2.755 0 011.917 1.974l1.998-.999a.75.75 0 01.67 1.342L19 10.714V13.5l3.25.003a.75.75 0 110 1.5L19 15.001V16a7.02 7.02 0 01-.204 1.686.833.833 0 01.04.018l2.75 1.375a.75.75 0 11-.671 1.342l-2.638-1.319A7 7 0 0112 23a7 7 0 01-6.197-3.742l-2.758 1.181a.75.75 0 11-.59-1.378l2.795-1.199A7.007 7.007 0 015 16v-.996H1.75a.75.75 0 010-1.5H5v-2.79L2.415 9.42a.75.75 0 01.67-1.342l1.998.999A2.755 2.755 0 017 7.104V6a4.99 4.99 0 011.69-3.748l-.97-.972a.75.75 0 010-1.06zM8.5 7h7V6a3.5 3.5 0 10-7 0v1zm-2 3.266V9.75c0-.69.56-1.25 1.25-1.25h8.5c.69 0 1.25.56 1.25 1.25V16a5.5 5.5 0 01-11 0v-5.734z">
                   </path>
                 </svg>
-              </a>
-            </span>
+              </span>
+            </a>
             <div class="flex-grow-1">
               <input type="text" class="form-control"
                 placeholder="Search everything or click the debug button for advanced search" aria-label="Search"
                 [(ngModel)]="search" (keyup)="updateList() " aria-describedby="basic-addon1" [disabled]="downloading">
             </div>
             <div class="dropend">
-              <button class="btn btn-primary pulse" id="dropdownMenu2" data-bs-toggle="dropdown" aria-expanded="false"
+              <button class="btn btn-{{theme}} pulse" id="dropdownMenu2" data-bs-toggle="dropdown" aria-expanded="false"
                 type="button" [disabled]="downloading">
                 <span *ngIf="downloading" class="spinner-border spinner-border-sm" role="status"
                   aria-hidden="true"></span>
@@ -373,14 +392,14 @@
               </select>
             </div>
             <div class="col-6 mx-auto d-flex justify-content-center mt-2">
-              <button type="submit" (click)="filterUsingObject()" class="btn btn-primary col-4 mx-1">Search</button>
+              <button type="submit" (click)="filterUsingObject()" class="btn btn-{{theme}} col-4 mx-1">Search</button>
               <button type="submit" (click)="restUsingObject()" class="btn btn-outline-secondary col-2">Reset</button>
             </div>
 
           </div>
         </div>
         <div *ngIf="appName" class="row mt-3">
-          <div class="alert alert-primary alert-dismissible fade show" role="alert">
+          <div class="alert alert-{{theme}} alert-dismissible fade show" role="alert">
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
 
             <div class="d-flex justify-content-between align-items-center">
@@ -407,18 +426,18 @@
         </div>
         <div id="content" class="mt-3">
           <div id="sideNav">
-            <button class="btn btn-dark showCharts" type="button" (click)="showCharts = !showCharts"
+            <button class="btn btn-{{theme}} showCharts" type="button" (click)="showCharts = !showCharts"
               data-bs-toggle="collapse" data-bs-target="#charts" aria-expanded="true" aria-controls="charts">
               {{showCharts ? 'Hide charts' : 'Show sharts'}}
             </button>
-            <button class="btn btn-dark showFilter" type="button" (click)="showFilter = !showFilter"
+            <button class="btn btn-{{theme}} showFilter" type="button" (click)="showFilter = !showFilter"
               data-bs-toggle="collapse" data-bs-target="#filter" aria-expanded="true" aria-controls="filter">
               {{showFilter ? 'Hide filter' : 'Show filter'}}
             </button>
-            <button class="btn btn-dark collapseAll" type="button" (click)="collapseAll()">
+            <button class="btn btn-{{theme}} collapseAll" type="button" (click)="collapseAll()">
               Collapse All
             </button>
-            <button class="btn btn-dark expandAll" type="button" (click)="expandAll()">
+            <button class="btn btn-{{theme}} expandAll" type="button" (click)="expandAll()">
               Expand All
             </button>
           </div>

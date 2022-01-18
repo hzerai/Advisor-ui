@@ -197,3 +197,100 @@
 #sideNav button:hover {
   right: 40px;
 }
+
+.header-primary {
+  background-image: linear-gradient(
+    90deg,
+    rgb(4, 0, 248),
+    rgb(2, 117, 216) 78%
+  );
+}
+
+.header-dark {
+  background-image: linear-gradient(90deg, rgb(0, 0, 0), rgb(51, 61, 86) 78%);
+}
+
+.header {
+  align-items: center;
+  box-shadow: rgba(0, 0, 0, 0.05) 0px 6.5px 13px 0px,
+    rgba(0, 0, 0, 0.1) 0px -1px 0px 0px inset;
+  box-sizing: border-box;
+  color: rgb(33, 37, 41);
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  font-family: Lato, "Helvetica Neue", Arial, Helvetica, sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  height: 80px;
+  justify-content: flex-start;
+  line-height: normal;
+  margin-bottom: 0px;
+  margin-left: 0px;
+  margin-right: 0px;
+  margin-top: 0px;
+  object-fit: contain;
+  padding-bottom: 6.5px;
+  padding-left: 13px;
+  padding-right: 13px;
+  padding-top: 6.5px;
+  position: sticky;
+  text-align: left;
+  text-size-adjust: 100%;
+  top: 0px;
+  user-select: none;
+  width: 100vw;
+  z-index: 999;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+}
+
+.advisor {
+  align-self: center;
+  box-sizing: border-box;
+  color: rgb(33, 37, 41);
+  display: flex;
+  margin: auto auto;
+  flex-basis: 16.6667%;
+  flex-grow: 0;
+  flex-shrink: 0;
+  font-family: Lato, "Helvetica Neue", Arial, Helvetica, sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  height: 64px;
+  justify-content: center;
+  line-height: normal;
+  max-width: 16.6667%;
+  padding-bottom: 0px;
+  padding-left: 0px;
+  padding-right: 0px;
+  padding-top: 0px;
+  position: relative;
+  text-align: left;
+  text-size-adjust: 100%;
+  user-select: none;
+  width: 251.663px;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+}
+
+.logo {
+  border-bottom-style: none;
+  border-left-style: none;
+  border-right-style: none;
+  border-top-style: none;
+  box-sizing: border-box;
+  color: rgb(0, 123, 255);
+  cursor: pointer;
+  display: inline;
+  font-family: Lato, "Helvetica Neue", Arial, Helvetica, sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  height: 64px;
+  line-height: normal;
+  text-align: left;
+  text-decoration-thickness: auto;
+  text-size-adjust: 100%;
+  user-select: none;
+  vertical-align: middle;
+  width: 191px;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+}

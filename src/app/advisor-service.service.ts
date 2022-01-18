@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Exception } from './Exception';
 import { environment } from 'src/environments/environment';
@@ -57,6 +57,19 @@ export class AdvisorServiceService {
       params = params.append('exceptionName', exceptionNameFilter)
     }
     return this.http.get<Exception[]>(this.api, { params });
+  }
+
+  jiraAsHtml(jiraId: string): Observable<string> {
+
+    let headers = new HttpHeaders();
+    headers.append('Accept', 'text/plain');
+    let params = new HttpParams();
+    if (jiraId != null) {
+      params = params.append('jiraId', jiraId.toString().toUpperCase())
+    } else {
+      return null;
+    }
+    return this.http.get<string>(this.api + "/html", { headers, params });
   }
 
 }

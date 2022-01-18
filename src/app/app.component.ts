@@ -53,11 +53,25 @@ export class AppComponent implements OnInit {
   showCharts: boolean = true;
   jiraId: string = null;
   useJira: boolean = false;
+  theme: string = 'dark';
 
+  changeTheme() {
+    if (this.theme == 'dark') {
+      this.theme = 'primary';
+    } else {
+      this.theme = 'dark';
+    }
+    window.localStorage.setItem('advisor-theme', this.theme)
+  }
   constructor(private advisor: AdvisorServiceService) { }
 
   ngOnInit(): void {
     var saved: string = window.localStorage.getItem('savedReports');
+    var themeColor: string = window.localStorage.getItem('advisor-theme');
+    if (themeColor) {
+      this.theme = themeColor;
+      console.log(themeColor)
+    }
     if (saved) {
       this.savedReports = JSON.parse(saved);
     }
@@ -100,20 +114,21 @@ export class AppComponent implements OnInit {
     this.currentFile = this.jiraId;
     this.uploading = 'SCANNING FILE ' + this.log.name + ', PLEASE HOLD...';
     this.folderFiles.push({ fileName: this.log.name, count: null, time: new Date().getTime() });
+    this.advisor.jiraAsHtml(this.jiraId).subscribe(e => console.log(e));
     this.advisor.analyseJiraTicket(this.jiraId, this.fromDate, this.toDate, this.exceptionNameFilter).subscribe(e => {
-        if(!e){
-          e = [];
-        }
-        let f = this.folderFiles.find(f => f.fileName == this.jiraId);
-        f.count = e.length;
-        f.time = Math.round((new Date().getTime() - f.time) / 1000);
-        e.forEach(ex => {
-          this.treatResultFromService(ex, ex.exception.logFile);
-        })
-        this.fileNb--;
-        if (this.fileNb <= 0) {
-          this.commitOneFile();
-        }
+      if (!e) {
+        e = [];
+      }
+      let f = this.folderFiles.find(f => f.fileName == this.jiraId);
+      f.count = e.length;
+      f.time = Math.round((new Date().getTime() - f.time) / 1000);
+      e.forEach(ex => {
+        this.treatResultFromService(ex, ex.exception.logFile);
+      })
+      this.fileNb--;
+      if (this.fileNb <= 0) {
+        this.commitOneFile();
+      }
 
     }, err => {
       this.rollbackOneFile(err);
