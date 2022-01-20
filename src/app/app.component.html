@@ -42,52 +42,69 @@
           <p>Our aim is to collect more user requirements.</p>
         </div>
         <div class="w-100 d-flex flex-column justify-content-center align-items-center ">
-          <div (click)="useJira=!useJira" class="btn-group w-25 mt-5">
-            <input class="m-0" (click)="useJira=!useJira" type="checkbox" checked data-toggle="toggle"
-              data-on="<img src='assets\img\jira.png' class='my-0' alt='jira logo' width='50px' height='30px'>Analyse jira ticket"
-              data-off="<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' fill='currentColor' class='bi bi-cloud-arrow-up me-2 my-0' viewBox='0 0 17 17'>          <path fill-rule='evenodd'                d='M7.646 5.146a.5.5 0 0 1 .708 0l2 2a.5.5 0 0 1-.708.708L8.5 6.707V10.5a.5.5 0 0 1-1 0V6.707L6.354 7.854a.5.5 0 1 1-.708-.708l2-2z' />              <path                d='M4.406 3.342A5.53 5.53 0 0 1 8 2c2.69 0 4.923 2 5.166 4.579C14.758 6.804 16 8.137 16 9.773 16 11.569 14.502 13 12.687 13H3.781C1.708 13 0 11.366 0 9.318c0-1.763 1.266-3.223 2.942-3.593.143-.863.698-1.723 1.464-2.383zm.653.757c-.757.653-1.153 1.44-1.153 2.056v.448l-.445.049C2.064 6.805 1 7.952 1 9.318 1 10.785 2.23 12 3.781 12h8.906C13.98 12 15 10.988 15 9.773c0-1.216-1.02-2.228-2.313-2.228h-.5v-.5C12.188 4.825 10.328 3 8 3a4.53 4.53 0 0 0-2.941 1.1z' />            </svg>Upload files"
-              data-offstyle="success" data-onstyle="outline-success">
-          </div>
           <div class="rounded shadow-lg body-bg p-5 w-75">
-            <div class="input-group">
-              <input *ngIf="useJira" [(ngModel)]="jiraId" type="text" class="form-control"
-                placeholder="Jira Key (example : HHH-5035)" aria-describedby="Jira Key">
-              <input *ngIf="!useJira" (change)="fileChange($event)" type="file" class="form-control"
-                id="inputGroupFile04" aria-describedby="inputGroupFileAddon04" aria-label="Upload" multiple>
-              <button *ngIf="!useJira" (click)="analyseFile()" class="btn btn-outline-{{theme}} w-25 fs-6" type="button"
-                id="inputGroupFileAddon04" [disabled]="!file && !files && !jiraId">
-                Analyse
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor"
-                  class="bi bi-cloud-arrow-up ms-2 my-0" viewBox="0 0 19 19">
-                  <path fill-rule="evenodd"
-                    d="M7.646 5.146a.5.5 0 0 1 .708 0l2 2a.5.5 0 0 1-.708.708L8.5 6.707V10.5a.5.5 0 0 1-1 0V6.707L6.354 7.854a.5.5 0 1 1-.708-.708l2-2z" />
-                  <path
-                    d="M4.406 3.342A5.53 5.53 0 0 1 8 2c2.69 0 4.923 2 5.166 4.579C14.758 6.804 16 8.137 16 9.773 16 11.569 14.502 13 12.687 13H3.781C1.708 13 0 11.366 0 9.318c0-1.763 1.266-3.223 2.942-3.593.143-.863.698-1.723 1.464-2.383zm.653.757c-.757.653-1.153 1.44-1.153 2.056v.448l-.445.049C2.064 6.805 1 7.952 1 9.318 1 10.785 2.23 12 3.781 12h8.906C13.98 12 15 10.988 15 9.773c0-1.216-1.02-2.228-2.313-2.228h-.5v-.5C12.188 4.825 10.328 3 8 3a4.53 4.53 0 0 0-2.941 1.1z" />
-                </svg>
-              </button>
-              <button *ngIf="useJira" (click)="analyseFile()" class="btn btn-outline-{{theme}} w-25 fs-6" type="button"
-                id="inputGroupFileAddon04" [disabled]="!file && !files && !jiraId"> Analyse
-                <img src="assets\img\jira.png" class="my-0" alt="jira logo" width="30px" height="20px">
-              </button>
-            </div>
+            <tabset [justified]="true">
+              <tab heading="Upload files">
+                <div class="input-group pt-2">
+                  <input (change)="fileChange($event)" type="file" class="form-control" id="inputGroupFile04"
+                    aria-describedby="inputGroupFileAddon04" aria-label="Upload" multiple>
+                  <button (click)="analyseFile()" class="btn btn-outline-{{theme}} w-25 fs-6" type="button"
+                    id="inputGroupFileAddon04" [disabled]="!file && !files && !jiraId">
+                    Analyse
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor"
+                      class="bi bi-cloud-arrow-up ms-2 my-0" viewBox="0 0 19 19">
+                      <path fill-rule="evenodd"
+                        d="M7.646 5.146a.5.5 0 0 1 .708 0l2 2a.5.5 0 0 1-.708.708L8.5 6.707V10.5a.5.5 0 0 1-1 0V6.707L6.354 7.854a.5.5 0 1 1-.708-.708l2-2z" />
+                      <path
+                        d="M4.406 3.342A5.53 5.53 0 0 1 8 2c2.69 0 4.923 2 5.166 4.579C14.758 6.804 16 8.137 16 9.773 16 11.569 14.502 13 12.687 13H3.781C1.708 13 0 11.366 0 9.318c0-1.763 1.266-3.223 2.942-3.593.143-.863.698-1.723 1.464-2.383zm.653.757c-.757.653-1.153 1.44-1.153 2.056v.448l-.445.049C2.064 6.805 1 7.952 1 9.318 1 10.785 2.23 12 3.781 12h8.906C13.98 12 15 10.988 15 9.773c0-1.216-1.02-2.228-2.313-2.228h-.5v-.5C12.188 4.825 10.328 3 8 3a4.53 4.53 0 0 0-2.941 1.1z" />
+                    </svg>
+                  </button>
+                </div>
+
+              </tab>
+              <tab heading="Analyse jira ticket">
+                <div class="input-group pt-2">
+                  <input [(ngModel)]="jiraId" type="text" class="form-control"
+                    placeholder="Jira Key (example : HHH-5035)" aria-describedby="Jira Key">
+                  <button (click)="analyseFile()" class="btn btn-outline-{{theme}} w-25 fs-6" type="button"
+                    id="inputGroupFileAddon04" [disabled]="!file && !files && !jiraId"> Analyse
+                    <img src="assets\img\jira.png" class="my-0" alt="jira logo" width="30px" height="20px">
+                  </button>
+                </div>
+
+              </tab>
+            </tabset>
             <div style="margin-top: 3vh;">
+
               <span class="badge bg-secondary mb-1">Limit your search </span>
               <div class="input-group">
-                <span class="input-group-text" style="width: 140px;">From date </span>
-                <input [(ngModel)]="fromDate" type="date" class="form-control">
-                <input [(ngModel)]="fromTime" type="time" class="form-control">
+                <input type="text" placeholder="From Date" class="form-control" [(ngModel)]="fromDate"
+                  [bsConfig]="{rangeInputFormat : 'MM/DD/YYYY', dateInputFormat: 'MM/DD/YYYY'}" bsDatepicker>
+                <timepicker style="margin-left: 2rem;" *ngIf="fromDate" [(ngModel)]="fromTime" [showMinutes]="true"
+                  [showSeconds]="true" [showSpinners]="false">
+                </timepicker>
               </div>
-              <div class="input-group">
-                <span class="input-group-text" style="width: 140px;">To date </span>
-                <input [(ngModel)]="toDate" type="date" class="form-control">
-                <input [(ngModel)]="toTime" type="time" class="form-control">
+              <div class="input-group mt-1">
+                <input type="text" placeholder="To Date" class="form-control" [(ngModel)]="toDate"
+                  [bsConfig]="{rangeInputFormat : 'MM/DD/YYYY', dateInputFormat: 'MM/DD/YYYY'}" bsDatepicker>
+                <timepicker style="margin-left: 2rem;" *ngIf="toDate" [(ngModel)]="toTime" [showMinutes]="true"
+                  [showSeconds]="true" [showSpinners]="false">
+                </timepicker>
               </div>
             </div>
-            <div style="margin-top: 2vh;">
+            <div class="mt-1">
               <div class="input-group">
-                <span class="input-group-text" style="width: 140px;">Contains text </span>
-                <input [(ngModel)]="exceptionNameFilter" type="text" class="form-control">
+                <input [(ngModel)]="exceptionNameFilter" type="text" class="form-control" placeholder="Matches">
               </div>
+            </div>
+
+            <span class="badge bg-secondary mb-1 mt-3">Enhance your search </span>
+            <div class="form-check">
+              <input [(ngModel)]="correlationIdEnabled" class="form-check-input" type="checkbox" value=""
+                id="correlationId">
+              <label class="form-check-label" for="correlationId">
+                Enable correlation id search
+              </label>
             </div>
           </div>
         </div>
@@ -135,7 +152,13 @@
             </div>
           </div>
         </div>
-        <div *ngIf="this.log" class="w-100 d-flex justify-content-center align-items-center ">
+        <div *ngIf="filesStartSize>0" class="w-100 d-flex justify-content-center align-items-center mt-5">
+          <progressbar class="progress-striped active" [value]="100-(fileNb*100)/filesStartSize"
+            [type]="db.length == 0 ? 'success' : (db.length < 5 ? 'warning' : 'danger')">
+            <i>{{(100-(fileNb*100)/filesStartSize | number: '.0-0' )+ '%'}}</i>
+          </progressbar>
+        </div>
+        <div *ngIf="this.log && fileNb==0" class="w-100 d-flex justify-content-center align-items-center ">
           <div class="spinner-grow text-{{theme}}" role="status">
             <span class="visually-hidden">Loading...</span>
           </div>
@@ -164,7 +187,7 @@
         <div class="p-5" style="font-size: 15px;">
           <ul *ngIf="folderFiles" class="list-group">
             <li *ngFor="let item of folderFiles" class="list-group-item py-1 px-2">
-              <div class="d-flex justify-content-between align-items-center">
+              <div class="d-flex justify-content-between align-items-center text-truncate">
                 {{item.fileName}}
                 <span *ngIf="item.count != null" class="badge badge-pill"
                   [ngClass]="item.count > 0 ? 'bg-danger' : 'bg-success'"> found {{item.count}} exceptions in
@@ -212,7 +235,9 @@
           </div>
         </div>
       </div>
-      <div *ngIf="db && db.length > 0 && !log && !this.uploading">
+      <div *ngIf="db && db.length > 0 && !log && !this.uploading && !correlationView">
+        <button *ngIf="correlationIdEnabled" class="btn btn-primary"
+          (click)="correlationView = !correlationView; correlationKeysPageChanged(null)">Correlations view</button>
         <div class="row d-flex flex-md-nowrap mt-3">
           <div class="input-group d-flex">
             <a class="text-{{theme}}" (click)="initFilter(); showFilter = !showFilter" data-bs-toggle="collapse"
@@ -321,75 +346,108 @@
           <div class="rounded p-3 shadow-lg row d-flex flex-wrap">
             <p class="h4">Filter result</p>
             <div class="mb-1 col-4">
-              <select class="form-select" aria-label="Exception" [(ngModel)]="filterObject.name"
+              <!-- <select class="form-select" aria-label="Exception" [(ngModel)]="filterObject.name"
                 [disabled]="filterNames && filterNames.length <= 1">
                 <option [value]="null">Exception</option>
                 <option *ngFor="let item of filterNames" [value]="item"
                   [selected]="filterNames && filterNames.length <= 1">{{filterNames.length <= 1 ? 'Exception : ' +item
                     :item}}</option>
-              </select>
+              </select> -->
+              <input id="Exception" class="form-control" name="Exception" [typeaheadMinLength]="0"
+                [typeaheadScrollable]="true" placeholder="Exception" [typeaheadOptionsInScrollableView]="5"
+                [(ngModel)]="filterObject.name" [typeahead]="filterNames">
             </div>
             <div class="mb-1 col-4">
-              <select class="form-select" aria-label="Level" [(ngModel)]="filterObject.level"
+              <!-- <select class="form-select" aria-label="Level" [(ngModel)]="filterObject.level"
                 [disabled]="filterLevels && filterLevels.length <= 1">
                 <option [value]="null">Level</option>
                 <option *ngFor="let item of filterLevels" [value]="item"
                   [selected]="filterLevels && filterLevels.length <= 1">{{filterLevels.length <= 1 ? 'Level : ' +item
                     :item}}</option>
-              </select>
+              </select> -->
+              <input id="Level" class="form-control" name="Level" [typeaheadMinLength]="0" [typeaheadScrollable]="true"
+                placeholder="Level" [typeaheadOptionsInScrollableView]="5" [(ngModel)]="filterObject.level"
+                [typeahead]="filterLevels">
             </div>
             <div class="mb-1 col-4">
-              <select class="form-select" aria-label="Thread" [(ngModel)]="filterObject.thread"
+              <!-- <select class="form-select" aria-label="Thread" [(ngModel)]="filterObject.thread"
                 [disabled]="filterThreads && filterThreads.length <= 1">
                 <option [value]="null">Thread</option>
                 <option *ngFor="let item of filterThreads" [value]="item"
                   [selected]="filterThreads && filterThreads.length <= 1">{{filterThreads.length <= 1 ? 'Thread : '
                     +item :item}}</option>
-              </select>
+              </select> -->
+              <input id="Thread" class="form-control" name="Thread" [typeaheadMinLength]="0"
+                [typeaheadScrollable]="true" placeholder="Thread" [typeaheadOptionsInScrollableView]="5"
+                [(ngModel)]="filterObject.thread" [typeahead]="filterThreads">
             </div>
             <div class="mb-1 col-4">
-              <select class="form-select" aria-label="Logger" [(ngModel)]="filterObject.logger"
+              <!-- <select class="form-select" aria-label="Logger" [(ngModel)]="filterObject.logger"
                 [disabled]="filterLoggers && filterLoggers.length <= 1">
                 <option [value]="null">Logger</option>
                 <option *ngFor="let item of filterLoggers" [value]="item"
                   [selected]="filterLoggers && filterLoggers.length <= 1">{{filterLoggers.length <= 1 ? 'Logger : '
                     +item :item}}</option>
-              </select>
+              </select> -->
+              <input id="Logger" class="form-control" name="Logger" [typeaheadMinLength]="0"
+                [typeaheadScrollable]="true" placeholder="Logger" [typeaheadOptionsInScrollableView]="5"
+                [(ngModel)]="filterObject.logger" [typeahead]="filterLoggers">
             </div>
             <div *ngIf="appName" class="mb-1 col-4">
-              <select class="form-select" aria-label="User" [(ngModel)]="filterObject.user"
+              <!-- <select class="form-select" aria-label="User" [(ngModel)]="filterObject.user"
                 [disabled]="filterUsers && filterUsers.length <= 1">
                 <option [value]="null">User</option>
                 <option *ngFor="let item of filterUsers" [value]="item"
                   [selected]="filterUsers && filterUsers.length <= 1">{{filterUsers.length <= 1 ? 'User : ' +item
                     :item}}</option>
-              </select>
+              </select> -->
+              <input id="User" class="form-control" name="User" [typeaheadMinLength]="0" [typeaheadScrollable]="true"
+                placeholder="User" [typeaheadOptionsInScrollableView]="5" [(ngModel)]="filterObject.user"
+                [typeahead]="filterUsers">
             </div>
             <div *ngIf="appName" class="mb-1 col-4">
-              <select class="form-select" aria-label="Tenant" [(ngModel)]="filterObject.tenant"
+              <!-- <select class="form-select" aria-label="Tenant" [(ngModel)]="filterObject.tenant"
                 [disabled]="filterTenants && filterTenants.length <= 1">
                 <option [value]="null">Tenant</option>
                 <option *ngFor="let item of filterTenants" [value]="item"
                   [selected]="filterTenants && filterTenants.length <= 1">{{filterTenants.length <= 1 ? 'Tenant : '
                     +item :item}}</option>
-              </select>
+              </select> -->
+              <input id="Tenant" class="form-control" name="Tenant" [typeaheadOptionsLimit]="7" [typeaheadMinLength]="0"
+                [typeaheadScrollable]="true" placeholder="Tenant" [typeaheadOptionsInScrollableView]="5"
+                [(ngModel)]="filterObject.tenant" [typeahead]="filterTenants">
             </div>
+
             <div class="mb-1 col-4 d-flex flex-nowrap justify-content-center">
-              <div class="col-2 d-flex justify-content-center align-items-center"><span>From</span> </div>
-              <input [(ngModel)]="filterObject.fromDate" type="datetime-local" class="form-control">
+              <!-- <div class="col-2 d-flex justify-content-center align-items-center"><span>From</span> </div>
+              <input [(ngModel)]="filterObject.fromDate" type="datetime-local" class="form-control"> -->
+              <input type="text" placeholder="from - to" class="form-control" [(ngModel)]="filterObject.dateRange"
+                [bsConfig]="{rangeInputFormat : 'MM/DD/YYYY', dateInputFormat: 'MM/DD/YYYY'}" bsDaterangepicker>
             </div>
-            <div class="mb-1 col-4 d-flex flex-nowrap">
+
+            <div class="mb-1 col-4" *ngIf="filterObject.dateRange.length > 0">
+              <timepicker [(ngModel)]="this.filterObject.fromTime" [showMinutes]="true" [showSeconds]="true"
+                [showSpinners]="false"></timepicker>
+            </div>
+            <div class="mb-1 col-4" *ngIf="filterObject.dateRange.length > 0">
+              <timepicker [(ngModel)]="this.filterObject.toTime" [showMinutes]="true" [showSeconds]="true"
+                [showSpinners]="false"></timepicker>
+            </div>
+            <!-- <div class="mb-1 col-4 d-flex flex-nowrap">
               <div class="col-2 d-flex justify-content-center align-items-center"><span>To</span> </div>
               <input [(ngModel)]="filterObject.toDate" type="datetime-local" class="form-control">
-            </div>
+            </div> -->
             <div class="mb-1 col-4">
-              <select class="form-select" aria-label="Logger" [(ngModel)]="filterObject.file"
+              <!-- <select class="form-select" aria-label="Logger" [(ngModel)]="filterObject.file"
                 [disabled]="filterFiles && filterFiles.length <= 1">
                 <option [value]="null">File</option>
                 <option *ngFor="let item of filterFiles" [value]="item"
                   [selected]="filterFiles && filterFiles.length <= 1">{{filterFiles.length <= 1 ? 'File : ' +item
                     :item}}</option>
-              </select>
+              </select> -->
+              <input id="File" class="form-control" name="File" [typeaheadOptionsLimit]="7" [typeaheadMinLength]="0"
+                [typeaheadScrollable]="true" placeholder="File" [typeaheadOptionsInScrollableView]="5"
+                [(ngModel)]="filterObject.file" [typeahead]="filterFiles">
             </div>
             <div class="col-6 mx-auto d-flex justify-content-center mt-2">
               <button type="submit" (click)="filterUsingObject()" class="btn btn-{{theme}} col-4 mx-1">Search</button>
@@ -479,7 +537,7 @@
           <div *ngFor="let exception of exceptions; let e = index" class="shadow-lg p-2 mb-2 bg-body rounded">
             <a class="text-decoration-none text-dark" data-bs-toggle="collapse" href="#exception{{e}}" role="button"
               aria-expanded="true" [attr.aria-controls]="'exception' +e">
-              <div class="row p-2" title="{{'Found in file : ' +exception.logFile}}">
+              <div class="row p-2">
                 <div class="col-6 fw-bold text-truncate">{{exception.exception.name}}</div>
                 <div class="col-1">{{exception.count}}</div>
                 <div class="col-2">{{exception.firstOccurence}}</div>
@@ -569,40 +627,41 @@
                 <div *ngFor="let occurence of occurences(exception)" class="p-1 border-bottom">
                   <a class="text-decoration-none text-dark">
                     <div class="row ">
-                      <div class="col-2 d-flex justify-content-center py-0" title="{{'File : ' +occurence.logFile}}">
-                        <p class="text-truncate my-0 ">{{exception.logFile}}</p>
+                      <div class="col-2 d-flex justify-content-center py-0">
+                        <p placement="top" tooltip="{{'File : ' +occurence.logFile}}" class="text-truncate my-0 ">
+                          {{exception.logFile}}</p>
                       </div>
-                      <div class="col-2 d-flex justify-content-center py-0" title="{{'Date : ' +occurence.date}}">
-                        <p class="text-truncate my-0 ">{{occurence.date}}</p>
-                      </div>
-                      <div class="d-flex justify-content-center py-0"
-                        [ngClass]="occurence.framework=='Palmyra' ? 'col-2' : 'col-4'"
-                        title="{{'Logger : ' +occurence.logger}}">
-                        <p class="text-truncate my-0 ">{{occurence.logger}}</p>
+                      <div class="col-2 d-flex justify-content-center py-0">
+                        <p placement="top" tooltip="{{'Date : ' +occurence.date}}" class="text-truncate my-0 ">
+                          {{occurence.date}}</p>
                       </div>
                       <div class="d-flex justify-content-center py-0"
-                        [ngClass]="occurence.framework=='Palmyra' ? 'col-2' : 'col-3'"
-                        title="{{'Thread : ' +occurence.thread}}">
-                        <p class="text-truncate my-0 ">{{occurence.thread}}</p>
+                        [ngClass]="occurence.framework=='Palmyra' ? 'col-2' : 'col-4'">
+                        <p placement="top" tooltip="{{'Logger : ' +occurence.logger}}" class="text-truncate my-0 ">
+                          {{occurence.logger}}</p>
+                      </div>
+                      <div class="d-flex justify-content-center py-0"
+                        [ngClass]="occurence.framework=='Palmyra' ? 'col-2' : 'col-3'">
+                        <p placement="top" tooltip="{{'Thread : ' +occurence.thread}}" class="text-truncate my-0 ">
+                          {{occurence.thread}}</p>
                       </div>
                       <div class="col-1 d-flex justify-content-center py-0">
-                        <div level-color [level]='occurence.level' class="rounded px-2 fw-bold"
-                          title="{{'Level : ' +occurence.level}}">
+                        <div level-color [level]='occurence.level' class="rounded px-2 fw-bold" placement="top"
+                          tooltip="{{'Level : ' +occurence.level}}">
                           <p class="text-truncate my-0 "> {{occurence.level}}</p>
                         </div>
                       </div>
-                      <div *ngIf="occurence.framework=='Palmyra'" class="col-1 d-flex justify-content-center py-0"
-                        title="{{'User : ' +occurence.user}}">
-                        <p class="my-0 ">{{occurence.user}}</p>
+                      <div *ngIf="occurence.framework=='Palmyra'" class="col-1 d-flex justify-content-center py-0">
+                        <p placement="top" tooltip="{{'User : ' +occurence.user}}" class="my-0 ">{{occurence.user}}</p>
                       </div>
-                      <div *ngIf="occurence.framework=='Palmyra'" class="col-1 d-flex justify-content-center py-0"
-                        title="{{'Tenant : ' +occurence.tenant}}">
-                        <p class="my-0 ">{{occurence.tenant}}</p>
+                      <div *ngIf="occurence.framework=='Palmyra'" class="col-1 d-flex justify-content-center py-0">
+                        <p placement="top" tooltip="{{'Tenant : ' +occurence.tenant}}" class="my-0 ">
+                          {{occurence.tenant}}</p>
                       </div>
                       <div *ngIf="occurence.framework=='Palmyra'"
-                        class="col-1 d-flex justify-content-center py-0 mx-0 px-0"
-                        title="{{'Transaction : ' +occurence.transaction}}">
+                        class="col-1 d-flex justify-content-center py-0 mx-0 px-0">
                         <svg width="64" height="30" viewBox="0 0 1040 1024" version="1.1" style="margin: 0;"
+                          placement="top" tooltip="{{'Transaction : ' +occurence.transaction}}"
                           [ngStyle]="{'cursor' : occurence.transaction != null? 'pointer' : 'none' }"
                           (click)="transactionalSearch(occurence.transaction)" xmlns="http://www.w3.org/2000/svg">
                           <path
@@ -616,6 +675,35 @@
             </div>
           </div>
         </div>
+      </div>
+      <div *ngIf="correlationView" class="list-group">
+        <button class="btn btn-primary" (click)="correlationView = !correlationView;">Analysis view</button>
+        <h1>Correlations</h1>
+        <a class="list-group-item list-group-item-action mt-2 shadow-lg" *ngFor="let key of correlationKeysPage">
+          <div class="d-flex justify-content-between">
+            <p class="h5 fw-bold">{{key}}</p>
+            <button (click)="correlationView = false; transactionalSearch(key)"
+              class="btn btn-danger">Exceptions</button>
+          </div>
+          <ol class="list-group">
+            <li class="list-group-item mt-1" *ngFor="let value of correlationValues(key)" appCorrelationItemColor
+              [level]='value.level'>
+              <div tooltip="{{'Application : ' + value.application}}" class="row">
+                <div class="col-1 text-truncate"> {{value.level}} </div>
+                <div class="col-2 text-truncate">| {{value.date}} </div>
+                <div class="col-3 text-truncate">| {{value.logger}} </div>
+                <div class="col-3 text-truncate">| {{value.thread}} </div>
+                <div class="col-2 text-truncate">| {{value.user}} </div>
+                <div *ngIf="value.tenant !== 'null'" class="col-1 text-truncate">| {{value.tenant}} </div>
+                <div *ngIf="value.message !== 'null'" class="col-12 py-1"> {{value.message}} </div>
+              </div>
+            </li>
+          </ol>
+        </a>
+        <pagination class="mx-auto" [maxSize]="5" [totalItems]="correlationKeys().length"
+          (pageChanged)="correlationKeysPageChanged($event)">
+        </pagination>
+
       </div>
     </main>
   </div>

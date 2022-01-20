@@ -13,6 +13,15 @@ import { BubbleChartComponent } from './bubble-chart/bubble-chart.component';
 import 'chartjs-adapter-moment';
 import { registerLocaleData } from '@angular/common';
 import en from '@angular/common/locales/en';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { TypeaheadModule } from 'ngx-bootstrap/typeahead';
+import { BsDatepickerModule } from 'ngx-bootstrap/datepicker';
+import { TimepickerModule } from 'ngx-bootstrap/timepicker';
+import { TooltipModule } from 'ngx-bootstrap/tooltip';
+import { ProgressbarModule } from 'ngx-bootstrap/progressbar';
+import { TabsModule } from 'ngx-bootstrap/tabs';
+import { PaginationModule } from 'ngx-bootstrap/pagination';
+import { CorrelationItemColorDirective } from './custom-directives/correlation-item-color.directive';
 
 
 registerLocaleData(en, 'en');
@@ -22,13 +31,22 @@ registerLocaleData(en, 'en');
     LevelColor,
     PieChartComponent,
     LineChartComponent,
-    BubbleChartComponent],
+    BubbleChartComponent,
+    CorrelationItemColorDirective],
   imports: [
     BrowserModule,
     AppRoutingModule,
     HttpClientModule,
     FormsModule,
-    NgChartsModule
+    NgChartsModule,
+    BrowserAnimationsModule,
+    TypeaheadModule.forRoot(),
+    BsDatepickerModule.forRoot(),
+    TimepickerModule.forRoot(),
+    TooltipModule.forRoot(),
+    ProgressbarModule.forRoot(),
+    TabsModule.forRoot(),
+    PaginationModule.forRoot()
   ],
   providers: [],
   bootstrap: [AppComponent]

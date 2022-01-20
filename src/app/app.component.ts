@@ -8,16 +8,21 @@ import { PieChartComponent } from './pie-chart/pie-chart.component';
 import { LineChartComponent } from './line-chart/line-chart.component';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
-import { formatDate } from "@angular/common";
 import * as XLSX from 'xlsx';
 import { PalmyraExceptionData } from './PalmyraExceptionData';
+import { ProgressbarConfig } from 'ngx-bootstrap/progressbar';
+import { PageChangedEvent } from 'ngx-bootstrap/pagination';
 
+export function getProgressbarConfig(): ProgressbarConfig {
+  return Object.assign(new ProgressbarConfig(), { animate: true, striped: true, max: 100 });
+}
 let zipFile: JSZip = new JSZip();
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
-  styleUrls: ['./app.component.css']
+  styleUrls: ['./app.component.css'],
+  providers: [{ provide: ProgressbarConfig, useFactory: getProgressbarConfig }]
 })
 export class AppComponent implements OnInit {
   date: Date = new Date();
@@ -39,10 +44,10 @@ export class AppComponent implements OnInit {
   lineData: Date[] = [];
   selectionLineData: Date[] = [];
   currentFile: string;
-  fromDate: any;
-  fromTime: any;
-  toDate: any;
-  toTime: any;
+  fromDate: Date;
+  fromTime: Date;
+  toDate: Date;
+  toTime: Date;
   exceptionNameFilter: string;
   file: any;
   files: FileList;
@@ -52,8 +57,8 @@ export class AppComponent implements OnInit {
   downloading: string;
   showCharts: boolean = true;
   jiraId: string = null;
-  useJira: boolean = false;
   theme: string = 'dark';
+  filesStartSize: number = 0;
 
   changeTheme() {
     if (this.theme == 'dark') {
@@ -70,7 +75,6 @@ export class AppComponent implements OnInit {
     var themeColor: string = window.localStorage.getItem('advisor-theme');
     if (themeColor) {
       this.theme = themeColor;
-      console.log(themeColor)
     }
     if (saved) {
       this.savedReports = JSON.parse(saved);
@@ -96,10 +100,9 @@ export class AppComponent implements OnInit {
     this.folderFiles = [];
     this.exceptions = [];
     this.db = [];
-    if (this.useJira) {
+    if (this.jiraId) {
       this.analyseLogUrl();
-    }
-    if (this.file) {
+    } else if (this.file) {
       this.analyseOneFile();
     } else if (this.files) {
       this.analyseMultipleFiles();
@@ -119,6 +122,19 @@ export class AppComponent implements OnInit {
       if (!e) {
         e = [];
       }
+      // if (this.correlationIdEnabled && e[0] && e[0].exception.framework == 'Palmyra') {
+      //   this.advisor.palmyraCorrelationId(this.log.bytes, this.fromDate, this.toDate, this.exceptionNameFilter).subscribe(e => {
+      //     Object.keys(e).forEach(k => {
+      //       if (this.correlationIds.has(k)) {
+      //         this.correlationIds.get(k).push(...e[k]);
+      //       } else {
+      //         this.correlationIds.set(k, e[k]);
+      //       }
+      //     })
+      //   }, err => {
+      //     console.log(err)
+      //   });
+      // }
       let f = this.folderFiles.find(f => f.fileName == this.jiraId);
       f.count = e.length;
       f.time = Math.round((new Date().getTime() - f.time) / 1000);
@@ -139,6 +155,7 @@ export class AppComponent implements OnInit {
   private analyseMultipleFiles() {
     // this.multipeFilesConsole();
     this.fileNb = this.files.length;
+    this.filesStartSize = this.fileNb;
     this.uploading = 'UPLOADING';
     for (var i = 0; i < this.files.length; i++) {
       const element = this.files.item(i);
@@ -207,6 +224,7 @@ export class AppComponent implements OnInit {
     zipFile.loadAsync(this.file).then((zip) => {
       // this.consoleZipFile(zip);
       this.fileNb = Object.keys(zip.files).length;
+      this.filesStartSize = this.fileNb;
       Object.keys(zip.files).forEach((filename) => {
         if (!filename.endsWith('\'') && !filename.endsWith('/')) {
           this.folderFiles.push({ fileName: filename, count: null, time: new Date().getTime() });
@@ -221,11 +239,28 @@ export class AppComponent implements OnInit {
   private processOneFileInZip(zip: JSZip, filename: string) {
     zip.files[filename].async('arraybuffer').then((fileData) => {
       this.advisor.analyseLog(fileData, this.fromDate, this.toDate, this.exceptionNameFilter).subscribe(e => {
+        this.fileNb--;
+        if (this.correlationIdEnabled && e[0] && e[0].exception.framework == 'Palmyra') {
+          this.advisor.palmyraCorrelationId(fileData, this.fromDate, this.toDate, this.exceptionNameFilter).subscribe(e => {
+            Object.keys(e).forEach(k => {
+              e[k].forEach(ed => ed.logFile = filename)
+              if (this.correlationIds.has(k)) {
+                this.correlationIds.get(k).push(...e[k]);
+              } else {
+                this.correlationIds.set(k, e[k]);
+              }
+            })
+            if(this.fileNb<=0){
+              this.sortCorrelationMap();
+            }
+          }, err => {
+            console.log(err)
+          });
+        }
         let f = this.folderFiles.find(f => f.fileName == filename);
         f.count = e.length;
         f.time = Math.round((new Date().getTime() - f.time) / 1000);
         this.analyseZipEntry(e, filename);
-        this.fileNb--;
         if (this.fileNb <= 0) {
           this.commitZipFile();
         }
@@ -249,6 +284,12 @@ export class AppComponent implements OnInit {
     this.log = null;
   }
 
+  sortCorrelationMap() {
+    this.correlationIds = new Map([...this.correlationIds.entries()].sort((a, b) => {
+      return new Date(a[1][0].date).getTime() - new Date(b[1][0].date).getTime();
+    }));
+  }
+
   // private consoleZipFile(zip: JSZip) {
   //   Object.keys(zip.files).forEach((filename) => {
   //     if (filename.trim().length != 0) {
@@ -266,24 +307,68 @@ export class AppComponent implements OnInit {
 
   private initDateParams() {
     if (this.fromDate) {
-      this.fromDate = new Date(Date.parse(this.fromDate));
       if (this.fromTime) {
-        this.fromDate.setHours(new Number(this.fromTime.split(':')[0]));
-        this.fromDate.setMinutes(new Number(this.fromTime.split(':')[1]));
+        this.fromDate.setHours(this.fromTime.getHours());
+        this.fromDate.setSeconds(this.fromTime.getSeconds());
+        this.fromDate.setMinutes(this.fromTime.getMinutes());
+      } else {
+        this.fromDate.setHours(0);
+        this.fromDate.setSeconds(0);
+        this.fromDate.setMinutes(0);
       }
     }
     if (this.toDate) {
-      this.toDate = new Date(Date.parse(this.toDate));
       if (this.toTime) {
-        this.toDate.setHours(new Number(this.toTime.split(':')[0]));
-        this.toDate.setMinutes(new Number(this.toTime.split(':')[1]));
+        this.toDate.setHours(this.toTime.getHours());
+        this.toDate.setSeconds(this.toTime.getSeconds());
+        this.toDate.setMinutes(this.toTime.getMinutes());
+      } else {
+        this.toDate.setHours(0);
+        this.toDate.setSeconds(0);
+        this.toDate.setMinutes(0);
       }
     }
+  }
+
+  correlationIds: Map<string, PalmyraExceptionData[]> = new Map();
+  correlationView: boolean = false;
+  correlationKeysPage: string[];
+  correlationKeys(): string[] {
+    return Array.from(this.correlationIds.keys());
+  }
+
+  correlationValues(key: string): PalmyraExceptionData[] {
+    return this.correlationIds.get(key);
+  }
+
+  correlationKeysPageChanged(event: PageChangedEvent): void {
+    if (!event) {
+      this.correlationKeysPage = this.correlationKeys().slice(0, 10);
+      return;
+    }
+    const startItem = (event.page - 1) * event.itemsPerPage;
+    const endItem = event.page * event.itemsPerPage;
+    this.correlationKeysPage = this.correlationKeys().slice(startItem, endItem);
   }
 
   analyseTextFile(fileName) {
     this.advisor.analyseLog(this.log.bytes, this.fromDate, this.toDate, this.exceptionNameFilter).subscribe(e => {
       {
+        if (this.correlationIdEnabled && e[0] && e[0].exception.framework == 'Palmyra') {
+          this.advisor.palmyraCorrelationId(this.log.bytes, this.fromDate, this.toDate, this.exceptionNameFilter).subscribe(e => {
+            Object.keys(e).forEach(k => {
+              e[k].forEach(ed => ed.logFile = fileName)
+              if (this.correlationIds.has(k)) {
+                this.correlationIds.get(k).push(...e[k]);
+              } else {
+                this.correlationIds.set(k, e[k]);
+              }
+            })
+            this.sortCorrelationMap();
+          }, err => {
+            console.log(err)
+          });
+        }
         if (!fileName) {
           fileName = this.log.name;
         }
@@ -654,7 +739,7 @@ export class AppComponent implements OnInit {
   filterFiles: string[];
   filterUsers: string[];
   filterTenants: string[];
-  filterObject: { name: string, level: string, thread: string, logger: string, file: string, user: string, tenant: string, fromDate: Date, toDate: Date } = {
+  filterObject: { name: string, level: string, thread: string, logger: string, file: string, user: string, tenant: string, dateRange: Date[], fromTime: Date, toTime: Date } = {
     name: null,
     level: null,
     thread: null,
@@ -662,8 +747,9 @@ export class AppComponent implements OnInit {
     file: null,
     user: null,
     tenant: null,
-    fromDate: null,
-    toDate: null
+    dateRange: [],
+    fromTime: null,
+    toTime: null
   }
 
   initFilter() {
@@ -713,8 +799,31 @@ export class AppComponent implements OnInit {
     let thread = this.filterObject.thread;
     let level = this.filterObject.level;
     let logger = this.filterObject.logger;
-    let fromDate = this.filterObject.fromDate;
-    let toDate = this.filterObject.toDate;
+    let fromDate = this.filterObject.dateRange[0];
+    let toDate = this.filterObject.dateRange[1];
+    if (fromDate) {
+      if (this.filterObject.fromTime) {
+        fromDate.setHours(this.filterObject.fromTime.getHours())
+        fromDate.setSeconds(this.filterObject.fromTime.getSeconds())
+        fromDate.setMinutes(this.filterObject.fromTime.getMinutes())
+      } else {
+        fromDate.setHours(0)
+        fromDate.setSeconds(0)
+        fromDate.setMinutes(0)
+      }
+    }
+    if (toDate) {
+      if (this.filterObject.toTime) {
+        toDate.setHours(this.filterObject.toTime.getHours())
+        toDate.setSeconds(this.filterObject.toTime.getSeconds())
+        toDate.setMinutes(this.filterObject.toTime.getMinutes())
+      } else {
+        toDate.setHours(23)
+        toDate.setSeconds(59)
+        toDate.setMinutes(59)
+      }
+    }
+
     var temp;
     if ((user && user != 'null') || (tenant && tenant != 'null') || (file && file != 'null') || (name && name != 'null') || (thread && thread != 'null') || (level && level != 'null') || (logger && logger != 'null') || fromDate || toDate) {
       var tempLineData = [];
@@ -810,8 +919,9 @@ export class AppComponent implements OnInit {
       file: null,
       user: null,
       tenant: null,
-      fromDate: null,
-      toDate: null
+      dateRange: [],
+      fromTime: null,
+      toTime: null
     };
 
     this.exceptions = this.db;
@@ -886,8 +996,6 @@ export class AppComponent implements OnInit {
     }
   }
 
-  scroll(event) {
-    console.log(event)
-  }
+  correlationIdEnabled: boolean = false;
 
 }

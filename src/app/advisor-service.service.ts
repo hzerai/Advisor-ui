@@ -3,6 +3,7 @@ import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Exception } from './Exception';
 import { environment } from 'src/environments/environment';
+import { ExceptionData } from './ExceptionData';
 @Injectable({
   providedIn: 'root'
 })
@@ -30,6 +31,24 @@ export class AdvisorServiceService {
       params = params.append('exceptionName', exceptionNameFilter)
     }
     return this.http.post<Exception[]>(this.api, log, { params });
+  }
+
+  palmyraCorrelationId(log, fromDate: Date, toDate: Date, exceptionNameFilter: string): Observable<Map<string, ExceptionData[]>> {
+    let params = new HttpParams();
+    if (fromDate != null) {
+      var date = new Date();
+      date.setTime(fromDate.getTime() + (60 * 60 * 1000));
+      params = params.append('fromDate', date.toISOString())
+    }
+    if (toDate != null) {
+      var date = new Date();
+      date.setTime(toDate.getTime() + (60 * 60 * 1000));
+      params = params.append('toDate', date.toISOString())
+    }
+    if (exceptionNameFilter != null) {
+      params = params.append('exceptionName', exceptionNameFilter)
+    }
+    return this.http.post<Map<string, ExceptionData[]>>(this.api + '/palmyraCorrelation', log, { params });
   }
 
   analyseJiraTicket(jiraId, fromDate: Date, toDate: Date, exceptionNameFilter, def: boolean = false): Observable<Exception[]> {
