@@ -1,22 +1,3 @@
-<!-- <nav class="navbar navbar-dark bg-{{theme}} fixed-top" id="nav" style="transition:height 1s ease-in-out;">
-  <div class="ribbon-wrapper-green" id="ribbon">
-    <div class="ribbon-green" id="ribbon-green">Alpha version</div>
-  </div>
-  <a href="" class="mx-3 px-3" id="nav-card" style="text-decoration: none;color: #f7f7f7ee;">
-    <div class="px-5">
-      <p class="h1 lh-1 my-0" id="ADVISOR">ADVISOR</p>
-    </div>
-    <div class="d-flex flex-wrap justify-content-end" id="logo">
-      <small class="fw-lighter lh-1" id="by">by</small>
-      <img src="assets\img\palmyraLogo.png" alt="advisor logo" id="palmyra-logo" style="max-height: 3vh;">
-      <input type="text" class="form-control" id="search"
-        style="display:none; font-size: 1rem; max-width: 40vw; margin: 0rem auto;padding: 0rem auto; margin-right: 30vw; "
-        placeholder="earch everywhere" aria-label="Search" [(ngModel)]="search" (keyup)="updateList() "
-        aria-describedby="basic-addon1" [disabled]="downloading">
-    </div>
-  </a>
-</nav> -->
-
 <div class="header header-{{theme}}">
   <a href="/" class="mx-auto">
     <div class="advisor">
@@ -30,7 +11,12 @@
     </div>
   </div>
 </div>
-
+<div *ngIf="correlationIdEnabled && db && db.length > 0 && !log && !this.uploading"
+  class="d-flex justify-content-center align-items-center {{correlationView ? 'bg-secondary' : 'bg-success'}} text-white"
+  (click)="correlationView = !correlationView;"
+  style="position: absolute; left: 30px; top: 200px;width: 100px; height: 100px; border-radius: 50%; cursor: pointer;">
+  <p class="fw-bold mt-1">{{correlationView ? 'Analysis' : 'Correlations'}}</p>
+</div>
 <div class="container container-fluid" style="margin-bottom: 6rem; margin-top: 1rem;">
   <div>
     <main>
@@ -236,8 +222,6 @@
         </div>
       </div>
       <div *ngIf="db && db.length > 0 && !log && !this.uploading && !correlationView">
-        <button *ngIf="correlationIdEnabled" class="btn btn-primary"
-          (click)="correlationView = !correlationView; correlationKeysPageChanged(null)">Correlations view</button>
         <div class="row d-flex flex-md-nowrap mt-3">
           <div class="input-group d-flex">
             <a class="text-{{theme}}" (click)="initFilter(); showFilter = !showFilter" data-bs-toggle="collapse"
@@ -346,85 +330,39 @@
           <div class="rounded p-3 shadow-lg row d-flex flex-wrap">
             <p class="h4">Filter result</p>
             <div class="mb-1 col-4">
-              <!-- <select class="form-select" aria-label="Exception" [(ngModel)]="filterObject.name"
-                [disabled]="filterNames && filterNames.length <= 1">
-                <option [value]="null">Exception</option>
-                <option *ngFor="let item of filterNames" [value]="item"
-                  [selected]="filterNames && filterNames.length <= 1">{{filterNames.length <= 1 ? 'Exception : ' +item
-                    :item}}</option>
-              </select> -->
               <input id="Exception" class="form-control" name="Exception" [typeaheadMinLength]="0"
                 [typeaheadScrollable]="true" placeholder="Exception" [typeaheadOptionsInScrollableView]="5"
                 [(ngModel)]="filterObject.name" [typeahead]="filterNames">
             </div>
             <div class="mb-1 col-4">
-              <!-- <select class="form-select" aria-label="Level" [(ngModel)]="filterObject.level"
-                [disabled]="filterLevels && filterLevels.length <= 1">
-                <option [value]="null">Level</option>
-                <option *ngFor="let item of filterLevels" [value]="item"
-                  [selected]="filterLevels && filterLevels.length <= 1">{{filterLevels.length <= 1 ? 'Level : ' +item
-                    :item}}</option>
-              </select> -->
               <input id="Level" class="form-control" name="Level" [typeaheadMinLength]="0" [typeaheadScrollable]="true"
                 placeholder="Level" [typeaheadOptionsInScrollableView]="5" [(ngModel)]="filterObject.level"
                 [typeahead]="filterLevels">
             </div>
             <div class="mb-1 col-4">
-              <!-- <select class="form-select" aria-label="Thread" [(ngModel)]="filterObject.thread"
-                [disabled]="filterThreads && filterThreads.length <= 1">
-                <option [value]="null">Thread</option>
-                <option *ngFor="let item of filterThreads" [value]="item"
-                  [selected]="filterThreads && filterThreads.length <= 1">{{filterThreads.length <= 1 ? 'Thread : '
-                    +item :item}}</option>
-              </select> -->
               <input id="Thread" class="form-control" name="Thread" [typeaheadMinLength]="0"
                 [typeaheadScrollable]="true" placeholder="Thread" [typeaheadOptionsInScrollableView]="5"
                 [(ngModel)]="filterObject.thread" [typeahead]="filterThreads">
             </div>
             <div class="mb-1 col-4">
-              <!-- <select class="form-select" aria-label="Logger" [(ngModel)]="filterObject.logger"
-                [disabled]="filterLoggers && filterLoggers.length <= 1">
-                <option [value]="null">Logger</option>
-                <option *ngFor="let item of filterLoggers" [value]="item"
-                  [selected]="filterLoggers && filterLoggers.length <= 1">{{filterLoggers.length <= 1 ? 'Logger : '
-                    +item :item}}</option>
-              </select> -->
               <input id="Logger" class="form-control" name="Logger" [typeaheadMinLength]="0"
                 [typeaheadScrollable]="true" placeholder="Logger" [typeaheadOptionsInScrollableView]="5"
                 [(ngModel)]="filterObject.logger" [typeahead]="filterLoggers">
             </div>
             <div *ngIf="appName" class="mb-1 col-4">
-              <!-- <select class="form-select" aria-label="User" [(ngModel)]="filterObject.user"
-                [disabled]="filterUsers && filterUsers.length <= 1">
-                <option [value]="null">User</option>
-                <option *ngFor="let item of filterUsers" [value]="item"
-                  [selected]="filterUsers && filterUsers.length <= 1">{{filterUsers.length <= 1 ? 'User : ' +item
-                    :item}}</option>
-              </select> -->
               <input id="User" class="form-control" name="User" [typeaheadMinLength]="0" [typeaheadScrollable]="true"
                 placeholder="User" [typeaheadOptionsInScrollableView]="5" [(ngModel)]="filterObject.user"
                 [typeahead]="filterUsers">
             </div>
             <div *ngIf="appName" class="mb-1 col-4">
-              <!-- <select class="form-select" aria-label="Tenant" [(ngModel)]="filterObject.tenant"
-                [disabled]="filterTenants && filterTenants.length <= 1">
-                <option [value]="null">Tenant</option>
-                <option *ngFor="let item of filterTenants" [value]="item"
-                  [selected]="filterTenants && filterTenants.length <= 1">{{filterTenants.length <= 1 ? 'Tenant : '
-                    +item :item}}</option>
-              </select> -->
               <input id="Tenant" class="form-control" name="Tenant" [typeaheadOptionsLimit]="7" [typeaheadMinLength]="0"
                 [typeaheadScrollable]="true" placeholder="Tenant" [typeaheadOptionsInScrollableView]="5"
                 [(ngModel)]="filterObject.tenant" [typeahead]="filterTenants">
             </div>
-
             <div class="mb-1 col-4 d-flex flex-nowrap justify-content-center">
-              <!-- <div class="col-2 d-flex justify-content-center align-items-center"><span>From</span> </div>
-              <input [(ngModel)]="filterObject.fromDate" type="datetime-local" class="form-control"> -->
               <input type="text" placeholder="from - to" class="form-control" [(ngModel)]="filterObject.dateRange"
                 [bsConfig]="{rangeInputFormat : 'MM/DD/YYYY', dateInputFormat: 'MM/DD/YYYY'}" bsDaterangepicker>
             </div>
-
             <div class="mb-1 col-4" *ngIf="filterObject.dateRange.length > 0">
               <timepicker [(ngModel)]="this.filterObject.fromTime" [showMinutes]="true" [showSeconds]="true"
                 [showSpinners]="false"></timepicker>
@@ -433,18 +371,7 @@
               <timepicker [(ngModel)]="this.filterObject.toTime" [showMinutes]="true" [showSeconds]="true"
                 [showSpinners]="false"></timepicker>
             </div>
-            <!-- <div class="mb-1 col-4 d-flex flex-nowrap">
-              <div class="col-2 d-flex justify-content-center align-items-center"><span>To</span> </div>
-              <input [(ngModel)]="filterObject.toDate" type="datetime-local" class="form-control">
-            </div> -->
             <div class="mb-1 col-4">
-              <!-- <select class="form-select" aria-label="Logger" [(ngModel)]="filterObject.file"
-                [disabled]="filterFiles && filterFiles.length <= 1">
-                <option [value]="null">File</option>
-                <option *ngFor="let item of filterFiles" [value]="item"
-                  [selected]="filterFiles && filterFiles.length <= 1">{{filterFiles.length <= 1 ? 'File : ' +item
-                    :item}}</option>
-              </select> -->
               <input id="File" class="form-control" name="File" [typeaheadOptionsLimit]="7" [typeaheadMinLength]="0"
                 [typeaheadScrollable]="true" placeholder="File" [typeaheadOptionsInScrollableView]="5"
                 [(ngModel)]="filterObject.file" [typeahead]="filterFiles">
@@ -676,35 +603,8 @@
           </div>
         </div>
       </div>
-      <div *ngIf="correlationView" class="list-group">
-        <button class="btn btn-primary" (click)="correlationView = !correlationView;">Analysis view</button>
-        <h1>Correlations</h1>
-        <a class="list-group-item list-group-item-action mt-2 shadow-lg" *ngFor="let key of correlationKeysPage">
-          <div class="d-flex justify-content-between">
-            <p class="h5 fw-bold">{{key}}</p>
-            <button (click)="correlationView = false; transactionalSearch(key)"
-              class="btn btn-danger">Exceptions</button>
-          </div>
-          <ol class="list-group">
-            <li class="list-group-item mt-1" *ngFor="let value of correlationValues(key)" appCorrelationItemColor
-              [level]='value.level'>
-              <div tooltip="{{'Application : ' + value.application}}" class="row">
-                <div class="col-1 text-truncate"> {{value.level}} </div>
-                <div class="col-2 text-truncate">| {{value.date}} </div>
-                <div class="col-3 text-truncate">| {{value.logger}} </div>
-                <div class="col-3 text-truncate">| {{value.thread}} </div>
-                <div class="col-2 text-truncate">| {{value.user}} </div>
-                <div *ngIf="value.tenant !== 'null'" class="col-1 text-truncate">| {{value.tenant}} </div>
-                <div *ngIf="value.message !== 'null'" class="col-12 py-1"> {{value.message}} </div>
-              </div>
-            </li>
-          </ol>
-        </a>
-        <pagination class="mx-auto" [maxSize]="5" [totalItems]="correlationKeys().length"
-          (pageChanged)="correlationKeysPageChanged($event)">
-        </pagination>
-
-      </div>
+      <app-correlation *ngIf="correlationView" [correlations]="correlationIds"
+        (transSearch)="transactionalSearch($event)"></app-correlation>
     </main>
   </div>
 </div>

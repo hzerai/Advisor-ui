@@ -1,0 +1,142 @@
+<div class="container">
+  <div>
+    <div class="row d-flex flex-md-nowrap mt-3">
+      <div class="input-group d-flex">
+        <button class="btn btn-outline-primary" (click)="initFilter();" data-bs-toggle="collapse" href="#filter"
+          role="button" aria-expanded="false" aria-controls="filter">
+          <span class="input-group-text" id="basic-addon1" class="text-primary">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+              <path fill-rule="evenodd"
+                d="M7.72.22a.75.75 0 011.06 0l1.204 1.203A4.983 4.983 0 0112 1c.717 0 1.4.151 2.016.423L15.22.22a.75.75 0 011.06 1.06l-.971.972A4.988 4.988 0 0117 6v1.104a2.755 2.755 0 011.917 1.974l1.998-.999a.75.75 0 01.67 1.342L19 10.714V13.5l3.25.003a.75.75 0 110 1.5L19 15.001V16a7.02 7.02 0 01-.204 1.686.833.833 0 01.04.018l2.75 1.375a.75.75 0 11-.671 1.342l-2.638-1.319A7 7 0 0112 23a7 7 0 01-6.197-3.742l-2.758 1.181a.75.75 0 11-.59-1.378l2.795-1.199A7.007 7.007 0 015 16v-.996H1.75a.75.75 0 010-1.5H5v-2.79L2.415 9.42a.75.75 0 01.67-1.342l1.998.999A2.755 2.755 0 017 7.104V6a4.99 4.99 0 011.69-3.748l-.97-.972a.75.75 0 010-1.06zM8.5 7h7V6a3.5 3.5 0 10-7 0v1zm-2 3.266V9.75c0-.69.56-1.25 1.25-1.25h8.5c.69 0 1.25.56 1.25 1.25V16a5.5 5.5 0 01-11 0v-5.734z">
+              </path>
+            </svg>
+          </span>
+          Show filter
+        </button>
+        <div class="flex-grow-1">
+          <input type="text" class="form-control"
+            placeholder="Search everything or click the debug button for advanced search" aria-label="Search"
+            [(ngModel)]="search" (keyup)="updateCorrelations() " aria-describedby="basic-addon1">
+        </div>
+        <button class="btn btn-outline-secondary" (click)="restUsingObject();" role="button">Reset </button>
+      </div>
+    </div>
+    <div class="collapse mx-3 mt-3" id="filter">
+      <div class="rounded p-3 shadow-lg row d-flex flex-wrap">
+        <p class="h4">Filter result</p>
+        <div class="mb-1 col-4">
+          <input id="Correlation id" class="form-control" name="Correlation id" [typeaheadMinLength]="0"
+            [typeaheadScrollable]="true" placeholder="Correlation id" [typeaheadOptionsInScrollableView]="5"
+            [(ngModel)]="filterObject.id" [typeahead]="filterCorrelation">
+        </div>
+        <div class="mb-1 col-4">
+          <input id="Level" class="form-control" name="Level" [typeaheadMinLength]="0" [typeaheadScrollable]="true"
+            placeholder="Level" [typeaheadOptionsInScrollableView]="5" [(ngModel)]="filterObject.level"
+            [typeahead]="filterLevels">
+        </div>
+        <div class="mb-1 col-4">
+          <input id="Thread" class="form-control" name="Thread" [typeaheadMinLength]="0" [typeaheadScrollable]="true"
+            placeholder="Thread" [typeaheadOptionsInScrollableView]="5" [(ngModel)]="filterObject.thread"
+            [typeahead]="filterThreads">
+        </div>
+        <div class="mb-1 col-4">
+          <input id="Logger" class="form-control" name="Logger" [typeaheadMinLength]="0" [typeaheadScrollable]="true"
+            placeholder="Logger" [typeaheadOptionsInScrollableView]="5" [(ngModel)]="filterObject.logger"
+            [typeahead]="filterLoggers">
+        </div>
+        <div class="mb-1 col-4">
+          <input id="User" class="form-control" name="User" [typeaheadMinLength]="0" [typeaheadScrollable]="true"
+            placeholder="User" [typeaheadOptionsInScrollableView]="5" [(ngModel)]="filterObject.user"
+            [typeahead]="filterUsers">
+        </div>
+        <div class="mb-1 col-4">
+          <input id="Tenant" class="form-control" name="Tenant" [typeaheadOptionsLimit]="7" [typeaheadMinLength]="0"
+            [typeaheadScrollable]="true" placeholder="Tenant" [typeaheadOptionsInScrollableView]="5"
+            [(ngModel)]="filterObject.tenant" [typeahead]="filterTenants">
+        </div>
+        <div class="mb-1 col-4 d-flex flex-nowrap justify-content-center">
+          <input type="text" placeholder="from - to" class="form-control" [(ngModel)]="filterObject.dateRange"
+            [bsConfig]="{rangeInputFormat : 'MM/DD/YYYY', dateInputFormat: 'MM/DD/YYYY'}" bsDaterangepicker>
+        </div>
+        <div class="mb-1 col-4" *ngIf="filterObject.dateRange.length > 0">
+          <timepicker [(ngModel)]="this.filterObject.fromTime" [showMinutes]="true" [showSeconds]="true"
+            [showSpinners]="false"></timepicker>
+        </div>
+        <div class="mb-1 col-4" *ngIf="filterObject.dateRange.length > 0">
+          <timepicker [(ngModel)]="this.filterObject.toTime" [showMinutes]="true" [showSeconds]="true"
+            [showSpinners]="false"></timepicker>
+        </div>
+        <div class="mb-1 col-4">
+          <input id="Application" class="form-control" name="Application" [typeaheadOptionsLimit]="7" [typeaheadMinLength]="0"
+            [typeaheadScrollable]="true" placeholder="Application" [typeaheadOptionsInScrollableView]="5"
+            [(ngModel)]="filterObject.app" [typeahead]="filterAppNames">
+        </div>
+        <div class="col-6 mx-auto d-flex justify-content-center mt-2">
+          <button type="submit" (click)="filterUsingObject()" class="btn btn-primary col-4 mx-1">Search</button>
+          <button type="submit" (click)="restUsingObject()" class="btn btn-outline-secondary col-2">Reset</button>
+        </div>
+
+      </div>
+    </div>
+    <div class="mt-5" style="position: relative;">
+      <div style="position: absolute; right: -70px; top: 30px;">
+        <div class="d-flex flex-column">
+          <div class="d-flex flex-nowrap">
+            <div style="width: 20px; height: 20px; margin: 1px 1px; border-radius: 20%;" class="bg-secondary"></div>
+            <p class="my-0 ms-1 fw-bold"><small>TRACE</small></p>
+          </div>
+          <div class="d-flex flex-nowrap">
+            <div style="width: 20px; height: 20px; margin: 1px 1px; border-radius: 20%;" class="bg-primary"></div>
+            <p class="my-0 ms-1 fw-bold"><small>DEBUG</small></p>
+          </div>
+          <div class="d-flex flex-nowrap">
+            <div style="width: 20px; height: 20px; margin: 1px 1px; border-radius: 20%;" class="bg-info"></div>
+            <p class="my-0 ms-1 fw-bold"><small>INFO</small></p>
+          </div>
+          <div class="d-flex flex-nowrap">
+            <div style="width: 20px; height: 20px; margin: 1px 1px; border-radius: 20%;" class="bg-warning"></div>
+            <p class="my-0 ms-1 fw-bold"><small>WARN</small></p>
+          </div>
+          <div class="d-flex flex-nowrap">
+            <div style="width: 20px; height: 20px; margin: 1px 1px; border-radius: 20%;" class="bg-danger"></div>
+            <p class="my-0 ms-1 fw-bold"><small>ERROR</small></p>
+          </div>
+        </div>
+      </div>
+      <h3 class="my-2">compact view</h3>
+      <div class="d-flex flex-wrap mx-auto">
+        <div *ngFor="let item of compactViewItems" class="{{item.color}}" tooltip="{{item.id}}"
+          (click)="filterbyId(item.id)"
+          style="width: 20px; height: 20px; margin: 1px 1px; border-radius: 20%; cursor: crosshair;"></div>
+      </div>
+    </div>
+    <div class="list-group mt-5">
+      <h3 class="my-2">details</h3>
+      <a class="list-group-item list-group-item-action shadow-lg" *ngFor="let key of correlationKeysPage">
+        <div class="d-flex justify-content-between">
+          <p class="h5 fw-bold">{{key}}</p>
+          <button *ngIf="showExButton(key)" (click)="transactionalSearch(key)" class="btn btn-danger">see in analysis
+            view</button>
+        </div>
+        <ol class="list-group">
+          <li class="list-group-item mt-1" *ngFor="let value of correlationValues(key)" appCorrelationItemColor
+            [level]='value.level'>
+            <div tooltip="{{'Application : ' + value.application}}" class="row">
+              <div class="col-1 text-truncate"> {{value.level}} </div>
+              <div class="col-2 text-truncate">| {{value.date}} </div>
+              <div class="col-3 text-truncate">| {{value.logger}} </div>
+              <div class="col-3 text-truncate">| {{value.thread}} </div>
+              <div class="col-2 text-truncate">| {{value.user}} </div>
+              <div *ngIf="value.tenant !== 'null'" class="col-1 text-truncate">| {{value.tenant}} </div>
+              <div *ngIf="value.message !== 'null'" class="col-12 py-1"> {{value.message}} </div>
+            </div>
+          </li>
+        </ol>
+      </a>
+      <pagination *ngIf="!filtered" [(ngModel)]="currentPage" class="mx-auto" [maxSize]="5"
+        [totalItems]="correlationKeys().length" (pageChanged)="correlationKeysPageChanged($event)">
+      </pagination>
+
+    </div>
+
+  </div>

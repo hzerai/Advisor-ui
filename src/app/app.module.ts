@@ -22,6 +22,7 @@ import { ProgressbarModule } from 'ngx-bootstrap/progressbar';
 import { TabsModule } from 'ngx-bootstrap/tabs';
 import { PaginationModule } from 'ngx-bootstrap/pagination';
 import { CorrelationItemColorDirective } from './custom-directives/correlation-item-color.directive';
+import { CorrelationComponent } from './correlation/correlation.component';
 
 
 registerLocaleData(en, 'en');
@@ -32,7 +33,8 @@ registerLocaleData(en, 'en');
     PieChartComponent,
     LineChartComponent,
     BubbleChartComponent,
-    CorrelationItemColorDirective],
+    CorrelationItemColorDirective,
+    CorrelationComponent],
   imports: [
     BrowserModule,
     AppRoutingModule,

@@ -11,7 +11,6 @@ import html2canvas from 'html2canvas';
 import * as XLSX from 'xlsx';
 import { PalmyraExceptionData } from './PalmyraExceptionData';
 import { ProgressbarConfig } from 'ngx-bootstrap/progressbar';
-import { PageChangedEvent } from 'ngx-bootstrap/pagination';
 
 export function getProgressbarConfig(): ProgressbarConfig {
   return Object.assign(new ProgressbarConfig(), { animate: true, striped: true, max: 100 });
@@ -250,9 +249,6 @@ export class AppComponent implements OnInit {
                 this.correlationIds.set(k, e[k]);
               }
             })
-            if(this.fileNb<=0){
-              this.sortCorrelationMap();
-            }
           }, err => {
             console.log(err)
           });
@@ -282,12 +278,6 @@ export class AppComponent implements OnInit {
     this.file = null;
     this.files = null;
     this.log = null;
-  }
-
-  sortCorrelationMap() {
-    this.correlationIds = new Map([...this.correlationIds.entries()].sort((a, b) => {
-      return new Date(a[1][0].date).getTime() - new Date(b[1][0].date).getTime();
-    }));
   }
 
   // private consoleZipFile(zip: JSZip) {
@@ -332,24 +322,7 @@ export class AppComponent implements OnInit {
 
   correlationIds: Map<string, PalmyraExceptionData[]> = new Map();
   correlationView: boolean = false;
-  correlationKeysPage: string[];
-  correlationKeys(): string[] {
-    return Array.from(this.correlationIds.keys());
-  }
 
-  correlationValues(key: string): PalmyraExceptionData[] {
-    return this.correlationIds.get(key);
-  }
-
-  correlationKeysPageChanged(event: PageChangedEvent): void {
-    if (!event) {
-      this.correlationKeysPage = this.correlationKeys().slice(0, 10);
-      return;
-    }
-    const startItem = (event.page - 1) * event.itemsPerPage;
-    const endItem = event.page * event.itemsPerPage;
-    this.correlationKeysPage = this.correlationKeys().slice(startItem, endItem);
-  }
 
   analyseTextFile(fileName) {
     this.advisor.analyseLog(this.log.bytes, this.fromDate, this.toDate, this.exceptionNameFilter).subscribe(e => {
@@ -364,7 +337,6 @@ export class AppComponent implements OnInit {
                 this.correlationIds.set(k, e[k]);
               }
             })
-            this.sortCorrelationMap();
           }, err => {
             console.log(err)
           });
@@ -936,7 +908,11 @@ export class AppComponent implements OnInit {
   currentTransactionalSearch: string;
 
   transactionalSearch(transaction: string) {
+    console.log(transaction)
     if (!transaction || '' == transaction) {
+      return;
+    }else if (transaction === 'back'){
+      this.correlationView = false;
       return;
     }
     this.search = null;
@@ -974,12 +950,14 @@ export class AppComponent implements OnInit {
       return result;
     }
     ).filter(e => e)
-    this.line.lineData = tempLineData;
-    this.line.ngOnInit();
-    this.line.chart.update();
+    this.correlationView = false;
+
     this.pie.exceptions = this.exceptions;
     this.pie.ngOnInit();
     this.pie.chart.update();
+    this.line.lineData = tempLineData;
+    this.line.ngOnInit();
+    this.line.chart.update();
   }
 
   collapseAll() {
