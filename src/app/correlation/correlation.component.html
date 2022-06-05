@@ -79,7 +79,7 @@
       </div>
     </div>
     <div class="mt-5" style="position: relative;">
-      <div style="position: absolute; right: -70px; top: 30px;">
+      <div style="position: absolute; right: -80px; top: 30px;">
         <div class="d-flex flex-column">
           <div class="d-flex flex-nowrap">
             <div style="width: 20px; height: 20px; margin: 1px 1px; border-radius: 20%;" class="bg-secondary"></div>
@@ -103,15 +103,15 @@
           </div>
         </div>
       </div>
-      <h3 class="my-2">compact view</h3>
-      <div class="d-flex flex-wrap mx-auto">
+      <h3 class="my-2 ms-3">Compact view</h3>
+      <div class="d-flex flex-wrap mx-auto" style="max-height: 30vh; overflow-y: scroll">
         <div *ngFor="let item of compactViewItems" class="{{item.color}}" tooltip="{{item.id}}"
           (click)="filterbyId(item.id)"
           style="width: 20px; height: 20px; margin: 1px 1px; border-radius: 20%; cursor: crosshair;"></div>
       </div>
     </div>
     <div class="list-group mt-5">
-      <h3 class="my-2">details</h3>
+      <h3 class="my-2 ms-3">Details</h3>
       <a class="list-group-item list-group-item-action shadow-lg" *ngFor="let key of correlationKeysPage">
         <div class="d-flex justify-content-between">
           <p class="h5 fw-bold">{{key}}</p>

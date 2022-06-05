@@ -8,6 +8,7 @@ import { ExceptionData } from './ExceptionData';
   providedIn: 'root'
 })
 export class AdvisorServiceService {
+
   private api = environment.api;
 
   constructor(private http: HttpClient) { }
@@ -89,6 +90,10 @@ export class AdvisorServiceService {
       return null;
     }
     return this.http.get<string>(this.api + "/html", { headers, params });
+  }
+
+  analyseStacktrace(stacktracetext: string): Observable<Exception[]> {
+    return this.http.post<Exception[]>(this.api, stacktracetext);
   }
 
 }

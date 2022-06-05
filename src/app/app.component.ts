@@ -58,7 +58,8 @@ export class AppComponent implements OnInit {
   jiraId: string = null;
   theme: string = 'dark';
   filesStartSize: number = 0;
-
+  stacktrace: boolean = false;
+  stacktracetext: string;
   changeTheme() {
     if (this.theme == 'dark') {
       this.theme = 'primary';
@@ -89,6 +90,37 @@ export class AppComponent implements OnInit {
       this.file = null;
       this.files = null;
     }
+  }
+
+  analyseStacktrace() {
+    this.initDateParams();
+    this.folderFiles = [];
+    this.exceptions = [];
+    this.db = [];
+
+    this.log = {
+      name: "Stacktrace",
+      bytes: null
+    };
+    this.currentFile = "Stacktrace";
+    this.uploading = 'SCANNING Stacktrace, PLEASE HOLD...';
+    this.folderFiles.push({ fileName: this.log.name, count: null, time: new Date().getTime() });
+    this.advisor.analyseStacktrace(this.stacktracetext).subscribe(e => {
+      if (!e) {
+        e = [];
+      }
+
+      e.forEach(ex => {
+        this.treatResultFromService(ex, ex.exception.logFile);
+      })
+      this.fileNb--;
+      if (this.fileNb <= 0) {
+        this.commitOneFile();
+      }
+
+    }, err => {
+      this.rollbackOneFile(err);
+    })
   }
 
   analyseFile() {
@@ -911,7 +943,7 @@ export class AppComponent implements OnInit {
     console.log(transaction)
     if (!transaction || '' == transaction) {
       return;
-    }else if (transaction === 'back'){
+    } else if (transaction === 'back') {
       this.correlationView = false;
       return;
     }

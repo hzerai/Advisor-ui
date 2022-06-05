@@ -1,5 +1,5 @@
 <div class="header header-{{theme}}">
-  <a href="/" class="mx-auto">
+  <a href="https://palmyrastudio.vermeg.com/hzerai-466017-app/" class="mx-auto">
     <div class="advisor">
       <img src="assets\img\palmyraLogo.png" alt="logo" class="logo">
     </div>
@@ -12,7 +12,7 @@
   </div>
 </div>
 <div *ngIf="correlationIdEnabled && db && db.length > 0 && !log && !this.uploading"
-  class="d-flex justify-content-center align-items-center {{correlationView ? 'bg-secondary' : 'bg-success'}} text-white"
+  class="d-flex justify-content-center align-items-center bg-{{theme}} text-white"
   (click)="correlationView = !correlationView;"
   style="position: absolute; left: 30px; top: 200px;width: 100px; height: 100px; border-radius: 50%; cursor: pointer;">
   <p class="fw-bold mt-1">{{correlationView ? 'Analysis' : 'Correlations'}}</p>
@@ -30,12 +30,12 @@
         <div class="w-100 d-flex flex-column justify-content-center align-items-center ">
           <div class="rounded shadow-lg body-bg p-5 w-75">
             <tabset [justified]="true">
-              <tab heading="Upload files">
+              <tab (selectTab)="stacktrace = false" heading="Upload files">
                 <div class="input-group pt-2">
                   <input (change)="fileChange($event)" type="file" class="form-control" id="inputGroupFile04"
                     aria-describedby="inputGroupFileAddon04" aria-label="Upload" multiple>
                   <button (click)="analyseFile()" class="btn btn-outline-{{theme}} w-25 fs-6" type="button"
-                    id="inputGroupFileAddon04" [disabled]="!file && !files && !jiraId">
+                    [disabled]="!file && !files && !jiraId">
                     Analyse
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor"
                       class="bi bi-cloud-arrow-up ms-2 my-0" viewBox="0 0 19 19">
@@ -48,19 +48,28 @@
                 </div>
 
               </tab>
-              <tab heading="Analyse jira ticket">
+              <tab (selectTab)="stacktrace = false" heading="Analyse jira ticket">
                 <div class="input-group pt-2">
                   <input [(ngModel)]="jiraId" type="text" class="form-control"
                     placeholder="Jira Key (example : HHH-5035)" aria-describedby="Jira Key">
                   <button (click)="analyseFile()" class="btn btn-outline-{{theme}} w-25 fs-6" type="button"
-                    id="inputGroupFileAddon04" [disabled]="!file && !files && !jiraId"> Analyse
+                    [disabled]="!file && !files && !jiraId"> Analyse
                     <img src="assets\img\jira.png" class="my-0" alt="jira logo" width="30px" height="20px">
                   </button>
                 </div>
 
               </tab>
+              <tab (selectTab)="stacktrace = true" heading="Stacktrace">
+                <div class="input-group pt-2">
+                  <textarea [(ngModel)]="stacktracetext" class="form-control"
+                    placeholder="Paste your stacktrace here..." aria-describedby="stacktrace holder"></textarea>
+                  <button (click)="analyseStacktrace()" class="btn btn-outline-{{theme}} w-100 fs-6 mt-3" type="button"
+                    [disabled]="!stacktracetext"> Analyse stacktrace
+                  </button>
+                </div>
+              </tab>
             </tabset>
-            <div style="margin-top: 3vh;">
+            <div *ngIf="!stacktrace" style="margin-top: 3vh;">
 
               <span class="badge bg-secondary mb-1">Limit your search </span>
               <div class="input-group">
@@ -77,21 +86,22 @@
                   [showSeconds]="true" [showSpinners]="false">
                 </timepicker>
               </div>
-            </div>
-            <div class="mt-1">
-              <div class="input-group">
-                <input [(ngModel)]="exceptionNameFilter" type="text" class="form-control" placeholder="Matches">
+              <div class="mt-1">
+                <div class="input-group">
+                  <input [(ngModel)]="exceptionNameFilter" type="text" class="form-control" placeholder="Matches">
+                </div>
+              </div>
+
+              <span class="badge bg-secondary mb-1 mt-3">Enhance your search </span>
+              <div class="form-check">
+                <input [(ngModel)]="correlationIdEnabled" class="form-check-input" type="checkbox" value=""
+                  id="correlationId">
+                <label class="form-check-label" for="correlationId">
+                  Enable correlation id search
+                </label>
               </div>
             </div>
 
-            <span class="badge bg-secondary mb-1 mt-3">Enhance your search </span>
-            <div class="form-check">
-              <input [(ngModel)]="correlationIdEnabled" class="form-check-input" type="checkbox" value=""
-                id="correlationId">
-              <label class="form-check-label" for="correlationId">
-                Enable correlation id search
-              </label>
-            </div>
           </div>
         </div>
         <div *ngIf="savedReports" class="raw" style="margin-top: 10rem;">
@@ -133,8 +143,8 @@
             <div class="w-25 h-75">
               <button *ngIf="this.db.length >0" class="btn btn-danger w-100 h-100 fw-bold" type="button"
                 (click)="log = null; folderFiles = null; uploading = null">Show result</button>
-              <a *ngIf="this.db.length ==0" class="btn btn-success w-100 h-100 fw-bold" href="/"
-                type="button">cancel</a>
+              <a *ngIf="this.db.length ==0" class="btn btn-success w-100 h-100 fw-bold"
+                href="https://palmyrastudio.vermeg.com/hzerai-466017-app/" type="button">cancel</a>
             </div>
           </div>
         </div>
